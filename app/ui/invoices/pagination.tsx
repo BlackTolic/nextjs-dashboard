@@ -23,7 +23,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
 
   return (
     <>
-        NOTE: Uncomment this code in Chapter 11
+        {/*NOTE: Uncomment this code in Chapter 11*/}
 
        <div className="inline-flex">
         <PaginationArrow
