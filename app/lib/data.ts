@@ -9,6 +9,11 @@ import {
 } from "./definitions";
 import { formatCurrency } from "./utils";
 
+/**
+ * 获取收入数据
+ * 从revenue表中获取所有收入记录
+ * 包含了3秒的人工延迟用于演示目的
+ */
 export async function fetchRevenue() {
   try {
     // Artificially delay a response for demo purposes.
@@ -28,6 +33,11 @@ export async function fetchRevenue() {
   }
 }
 
+/**
+ * 获取最新的发票记录
+ * 从invoices和customers表中联合查询最新的5条发票记录
+ * 返回带有格式化金额的发票数据
+ */
 export async function fetchLatestInvoices() {
   try {
     const data = await sql<LatestInvoiceRaw>`
@@ -48,6 +58,13 @@ export async function fetchLatestInvoices() {
   }
 }
 
+/**
+ * 获取仪表盘卡片数据
+ * 并行查询以下统计数据:
+ * 1. 发票总数
+ * 2. 客户总数
+ * 3. 已支付和待支付发票金额
+ */
 export async function fetchCardData() {
   try {
     // You can probably combine these into a single SQL query
@@ -83,7 +100,14 @@ export async function fetchCardData() {
   }
 }
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 6; // 每页显示的项目数
+
+/**
+ * 获取经过筛选的发票列表
+ * @param query - 搜索关键词
+ * @param currentPage - 当前页码
+ * 支持按客户名称、邮箱、金额、日期和状态进行模糊搜索
+ */
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
@@ -119,6 +143,10 @@ export async function fetchFilteredInvoices(
   }
 }
 
+/**
+ * 计算符合搜索条件的发票总页数
+ * @param query - 搜索关键词
+ */
 export async function fetchInvoicesPages(query: string) {
   try {
     const count = await sql`SELECT COUNT(*)
@@ -140,6 +168,11 @@ export async function fetchInvoicesPages(query: string) {
   }
 }
 
+/**
+ * 根据ID获取单个发票详情
+ * @param id - 发票ID
+ * 返回的金额会从分转换为元
+ */
 export async function fetchInvoiceById(id: string) {
   try {
     const data = await sql<InvoiceForm>`
@@ -165,6 +198,10 @@ export async function fetchInvoiceById(id: string) {
   }
 }
 
+/**
+ * 获取所有客户的基础信息列表
+ * 按客户名称升序排序
+ */
 export async function fetchCustomers() {
   try {
     const data = await sql<CustomerField>`
@@ -183,6 +220,11 @@ export async function fetchCustomers() {
   }
 }
 
+/**
+ * 获取经过筛选的客户列表
+ * @param query - 搜索关键词
+ * 包含每个客户的发票统计信息(总数、待付款、已付款金额)
+ */
 export async function fetchFilteredCustomers(query: string) {
   try {
     const data = await sql<CustomersTableType>`
