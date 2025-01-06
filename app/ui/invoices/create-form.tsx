@@ -13,13 +13,10 @@ import { createInvoice, State } from "@/app/lib/actions";
 import { useActionState } from "react";
 
 export default function Form({ customers }: { customers: CustomerField[] }) {
-  console.log(customers, "customers");
-
   const initialState: State = { message: null, errors: {} };
   // 是React 19 中引入的一个新hook，用于简化处理表单提交和状态管理。 它接受一个异步操作和默认值，并返回当前的状态、提交函数和加载状态。
   // 这个hook 主要解决了在表单提交时的繁琐状态管理问题，使代码更加简洁和直观
   const [state, formAction] = useActionState(createInvoice, initialState);
-  console.log(state, formAction, "state, formAction");
   return (
     <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
