@@ -8,13 +8,14 @@ import { redirect } from "next/navigation";
 
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import { NextResponse } from "next/server";
 
+// 定义发票表单的验证模式
 const FormSchema = z.object({
   id: z.string(),
   customerId: z.string({ invalid_type_error: "Please select a customer." }),
-  // coerce强制转换类型
   amount: z.coerce
-    .number()
+    .number() // coerce用于将输入值强制转换为数字类型
     .gt(0, { message: "Please enter an amount greater than $0." }),
   status: z.enum(["pending", "paid"], {
     invalid_type_error: "Please select an invoice status.",
@@ -22,7 +23,10 @@ const FormSchema = z.object({
   date: z.string(),
 });
 
+// 创建发票时使用的验证模式，省略id和date字段
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
+
+// 定义状态类型，用于表单错误处理
 export type State = {
   errors?: {
     customerId?: string[];
@@ -31,24 +35,17 @@ export type State = {
   };
   message?: string | null;
 };
-// prevState - contains the state passed from the useActionState hook.
-// You won't be using it in the action in this example, but it's a required prop.
-export async function createInvoice(prevState: State, formData: FormData) {
-  // console.log(formData, "formData");
-  // 将form输入的值进行格式转换和校验
-  // const { customerId, amount, status } = CreateInvoice.parse({
 
-  // safeParse() will return an object containing either a success or error field.
-  // This will help handle validation more gracefully without having put this logic inside the try/catch block.
+// 创建发票的服务器动作
+export async function createInvoice(prevState: State, formData: FormData) {
+  // 使用safeParse进行表单验证，它会返回成功或错误对象
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get("customerId"),
     amount: formData.get("amount"),
     status: formData.get("status"),
   });
 
-  console.log(validatedFields, "validatedFields");
-
-  // If form validation fails, return errors early. Otherwise, continue.
+  // 如果验证失败，返回错误信息
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
@@ -56,33 +53,33 @@ export async function createInvoice(prevState: State, formData: FormData) {
     };
   }
 
-  // Prepare data for insertion into the database
+  // 准备数据库插入数据
   const { customerId, amount, status } = validatedFields.data;
-  const amountInCents = amount * 100;
+  const amountInCents = amount * 100; // 将金额转换为分
   const date = new Date().toISOString().split("T")[0];
 
-  // Test it out:
-  // console.log(customerId, amount, status, " customerId, amount, status");
   try {
-    // 写入数据库
+    // 向数据库插入新发票
     await sql`
     INSERT INTO invoices (customer_id, amount, status, date)
     VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
-  `;
+    `;
   } catch (error) {
     return {
       message: "Database Error: Failed to Create Invoice.",
     };
   }
-  // 这个可以清除客户端的路由段缓存
-  // Once the database has been updated,this path will be revalidated
+
+  // 重新验证发票列表页面的数据
   revalidatePath("/dashboard/invoices");
-  // 跳回列表
+  // 重定向到发票列表页面
   redirect("/dashboard/invoices");
 }
 
+// 更新发票的验证模式
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
+// 更新发票的服务器动作
 export async function updateInvoice(id: string, formData: FormData) {
   const { customerId, amount, status } = UpdateInvoice.parse({
     customerId: formData.get("customerId"),
@@ -92,11 +89,12 @@ export async function updateInvoice(id: string, formData: FormData) {
 
   const amountInCents = amount * 100;
   try {
+    // 更新数据库中的发票记录
     await sql`
     UPDATE invoices
     SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
     WHERE id = ${id}
-  `;
+    `;
   } catch (error) {
     return { message: "Database Error: Failed to Update Invoice." };
   }
@@ -104,8 +102,8 @@ export async function updateInvoice(id: string, formData: FormData) {
   redirect("/dashboard/invoices");
 }
 
+// 删除发票的服务器动作
 export async function deleteInvoice(id: string) {
-  // throw new Error('Failed to Delete Invoice');
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
     revalidatePath("/dashboard/invoices");
@@ -115,6 +113,7 @@ export async function deleteInvoice(id: string) {
   }
 }
 
+// 用户认证的服务器动作
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
@@ -123,6 +122,7 @@ export async function authenticate(
     await signIn("credentials", formData);
   } catch (error) {
     if (error instanceof AuthError) {
+      // 处理不同类型的认证错误
       switch (error.type) {
         case "CredentialsSignin":
           return "Invalid credentials.";
