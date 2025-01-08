@@ -1,31 +1,47 @@
-'use client';
+"use client";
 
 import { lusitana } from "@/app/ui/fonts";
-import { ChartBarIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
-import StockDetailModal from '@/app/ui/stock-pool/stock-detail-modal';
-import Pagination from '@/app/ui/invoices/pagination';
+import { ChartBarIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useState, useRef } from "react";
+import StockDetailModal from "@/app/ui/stock-pool/stock-detail-modal";
+import Pagination from "@/app/ui/invoices/pagination";
+import { tickerSearchByKeywords } from "@/app/api/stock";
 
 export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStock, setSelectedStock] = useState({ code: '', name: '' });
+  const [selectedStock, setSelectedStock] = useState({ code: "", name: "" });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages] = useState(10);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const prevSearchKeywordRef = useRef("");
 
   const handleOpenModal = (code: string, name: string) => {
     setSelectedStock({ code, name });
     setIsModalOpen(true);
   };
 
+  const handleSearch = async (value: string) => {
+    if (value.trim() && value !== prevSearchKeywordRef.current) {
+      prevSearchKeywordRef.current = value;
+      const response = await tickerSearchByKeywords(value);
+      console.log(response, "response");
+      // const results = await response.json();
+      setSearchResults(response);
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex w-full items-center justify-between">
-        <h1 className={`${lusitana.className} text-2xl flex items-center gap-2`}>
+        <h1
+          className={`${lusitana.className} text-2xl flex items-center gap-2`}
+        >
           <ChartBarIcon className="w-6 h-6" />
           股票池
         </h1>
       </div>
-      
+
       <div className="mt-4 rounded-lg bg-gray-50 p-6">
         <div className="flex flex-col gap-4">
           <div className="relative">
@@ -36,25 +52,42 @@ export default function Page() {
               type="text"
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               placeholder="搜索股票代码或名称..."
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onBlur={() => handleSearch(searchKeyword)}
             />
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     股票代码
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     股票名称
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     最新价
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     涨跌幅
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     操作
                   </th>
                 </tr>
@@ -76,9 +109,9 @@ export default function Page() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button 
+                    <button
                       className="text-blue-600 hover:text-blue-900"
-                      onClick={() => handleOpenModal('600000', '浦发银行')}
+                      onClick={() => handleOpenModal("600000", "浦发银行")}
                     >
                       查看详情
                     </button>
@@ -113,7 +146,8 @@ export default function Page() {
           </div>
         </div>
       </div>
-      
+      {/*{searchResults.msg}*/}
+
       <StockDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
