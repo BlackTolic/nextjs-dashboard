@@ -16,9 +16,6 @@ export default function LoginForm() {
     authenticate,
     undefined,
   );
-  console.log("刷新登录页面LoginForm后，获取的信息");
-  console.log(errorMessage, "errorMessage999");
-  console.log(isPending, "isPending999");
   return (
     <form action={formAction} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
