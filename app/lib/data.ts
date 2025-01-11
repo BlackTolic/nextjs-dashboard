@@ -25,6 +25,7 @@ export async function fetchRevenue() {
 
     const data = await sql<Revenue>`SELECT * FROM revenue`;
     console.log("Data fetch completed after 3 seconds.");
+    console.log(data,'999')
 
     return data.rows;
   } catch (error) {
@@ -76,7 +77,7 @@ export async function fetchCardData() {
          SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
          SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
          FROM invoices`;
-
+console.log(invoiceCountPromise,'invoiceCountPromise')
     const data = await Promise.all([
       invoiceCountPromise,
       customerCountPromise,

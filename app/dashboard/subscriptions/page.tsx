@@ -1,36 +1,9 @@
 import { lusitana } from "@/app/ui/fonts";
 import { BellIcon } from "@heroicons/react/24/outline";
-import DescripCard from "@/app/ui/common/descrip-card";
+import SubscriptionCard from "@/app/ui/common/subscription-card";
+import { subscriptions } from "@/app/ui/common/constant";
 
 const Subscriptions = () => {
-  // Example subscription data with additional fields
-  const subscriptions = [
-    {
-      id: 1,
-      title: "订阅1",
-      description: "这是订阅1的描述。",
-      maxValue: 100,
-      minValue: 10,
-      chartType: "line",
-    },
-    {
-      id: 2,
-      title: "订阅2",
-      description: "这是订阅2的描述。",
-      maxValue: 200,
-      minValue: 20,
-      chartType: "bar",
-    },
-    {
-      id: 3,
-      title: "订阅3",
-      description: "这是订阅3的描述。",
-      maxValue: 300,
-      minValue: 30,
-      chartType: "candlestick",
-    },
-  ];
-
   return (
     <div>
       <div className="flex w-full items-center justify-between">
@@ -39,18 +12,38 @@ const Subscriptions = () => {
           我的订阅
         </h1>
       </div>
+      <div className="mt-4 mb-8">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="搜索订阅..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
 
       {/* Subscription cards */}
       <div className="flex flex-wrap gap-4">
-        {subscriptions.map((subscription) => (
-          <DescripCard
-            key={subscription.id}
-            title={subscription.title}
-            description={subscription.description}
-            maxValue={subscription.maxValue}
-            minValue={subscription.minValue}
-            chartType={subscription.chartType}
-            className="w-[300px]"
+        {subscriptions.map((sub) => (
+          <SubscriptionCard
+            key={sub.id}
+            subscription={{
+              id: sub.id,
+              title: sub.title,
+              description: sub.description,
+              maxValue: sub.maxValue,
+              minValue: sub.minValue,
+              selectedOptions: {
+                showMaxValue: true,
+                showMinValue: true,
+                showChart: false
+              }
+            }}
           />
         ))}
       </div>
