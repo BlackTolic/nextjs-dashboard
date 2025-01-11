@@ -1,9 +1,32 @@
+'use client';
+
 import { lusitana } from "@/app/ui/fonts";
 import { BellIcon } from "@heroicons/react/24/outline";
 import SubscriptionCard from "@/app/ui/common/subscription-card";
 import { subscriptions } from "@/app/ui/common/constant";
+import { Button } from "@/app/ui/button";
+import { updateStocksFromXueqiu } from '@/app/lib/db/stock/stock-list';
 
 const Subscriptions = () => {
+  const handleTest = async () => {
+    try {
+      const stocks = await updateStocksFromXueqiu();
+      console.log('抓取到的股票数据:', stocks);
+    } catch (error) {
+      console.error('测试抓取失败:', error);
+    }
+  };
+
+  const handlePolling = async () => {
+    try {
+      console.log('开始轮询更新...');
+      const stocks = await updateStocksFromXueqiu();
+      console.log('轮询更新结果:', stocks);
+    } catch (error) {
+      console.error('轮询更新失败:', error);
+    }
+  };
+
   return (
     <div>
       <div className="flex w-full items-center justify-between">
@@ -11,6 +34,14 @@ const Subscriptions = () => {
           <BellIcon className="w-6 h-6" />
           我的订阅
         </h1>
+        <div className="flex gap-2">
+          <Button className="flex items-center" onClick={handleTest}>
+            测试按钮
+          </Button>
+          <Button className="flex items-center" onClick={handlePolling}>
+            轮询更新
+          </Button>
+        </div>
       </div>
       <div className="mt-4 mb-8">
         <div className="relative">

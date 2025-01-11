@@ -25,7 +25,7 @@ export async function fetchRevenue() {
 
     const data = await sql<Revenue>`SELECT * FROM revenue`;
     console.log("Data fetch completed after 3 seconds.");
-    console.log(data,'999')
+    // console.log(data,'999')
 
     return data.rows;
   } catch (error) {
