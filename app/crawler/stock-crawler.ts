@@ -63,7 +63,7 @@ export async function crawlXueqiuStocksList(page: number = 1, size: number = 100
 export async function pollXueqiuStocksList(
     maxPages: number = 3,
     pageSize: number = 100,
-    delayMs: number = 1000
+    delayMs: number = 500
 ): Promise<StockData[]> {
     const allStocks: StockData[] = [];
     let page = 1;

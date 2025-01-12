@@ -1,20 +1,27 @@
-"use client";
+'use client';
 
-import { lusitana } from "@/app/ui/fonts";
-import { ChartBarIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { useState, useRef } from "react";
-import StockDetailModal from "@/app/ui/stock-pool/stock-detail-modal";
-import Pagination from "@/app/ui/invoices/pagination";
-import { tickerSearchByKeywords } from "@/app/api/stock";
+import { lusitana } from '@/app/ui/fonts';
+import { ChartBarIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useState, useRef, useEffect } from 'react';
+import StockDetailModal from '@/app/ui/stock-pool/stock-detail-modal';
+import Pagination from '@/app/ui/invoices/pagination';
+// import { tickerSearchByKeywords } from "@/app/api/stock";
+// import { stockPoolColumns } from './constant';
+import StockTable from '@/app/ui/stock-pool/stock-table';
+import { StockTableSkeleton } from '@/app/ui/skeletons';
+import { getStocks } from '@/app/lib/db/stock/stock-list';
+import { stockPoolColumns, StockInfo } from './constant';
 
 export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStock, setSelectedStock] = useState({ code: "", name: "" });
+  const [selectedStock, setSelectedStock] = useState({ code: '', name: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages] = useState(10);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [totalPages, setTotalPages] = useState(10);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const query = searchKeyword;
   const [searchResults, setSearchResults] = useState([]);
-  const prevSearchKeywordRef = useRef("");
+  const [tableList, setTableList] = useState<StockInfo[]>([]);
+  const prevSearchKeywordRef = useRef('');
 
   const handleOpenModal = (code: string, name: string) => {
     setSelectedStock({ code, name });
@@ -24,19 +31,40 @@ export default function Page() {
   const handleSearch = async (value: string) => {
     if (value.trim() && value !== prevSearchKeywordRef.current) {
       prevSearchKeywordRef.current = value;
-      const response = await tickerSearchByKeywords(value);
-      console.log(response, "response");
+      // const response = await tickerSearchByKeywords(value);
+      // console.log(response, "response");
       // const results = await response.json();
-      setSearchResults(response);
+      // setSearchResults(response);
     }
   };
+
+  //   console.log(data,555);
+  useEffect(() => {
+    const fetchStocks = async () => {
+      const data = await getStocks();
+      const stockList =
+        data?.data?.map((item: any) => ({
+          symbol: item.symbol,
+          name: item.name,
+          market: item.market,
+          industry: item.industry,
+          listingDate: item.listing_date,
+          totalShare: item.total_share,
+          circulatingShare: item.circulating_share,
+          totalMarketValue: item.total_market_value,
+          circulatingMarketValue: item.circulating_market_value,
+        })) ?? [];
+      setTableList(stockList);
+      const totalPages = Math.ceil(Number(data.pagination.total) / 10);
+      setTotalPages(totalPages);
+    };
+    fetchStocks();
+  }, []);
 
   return (
     <div className="w-full">
       <div className="flex w-full items-center justify-between">
-        <h1
-          className={`${lusitana.className} text-2xl flex items-center gap-2`}
-        >
+        <h1 className={`${lusitana.className} text-2xl flex items-center gap-2`}>
           <ChartBarIcon className="w-6 h-6" />
           股票池
         </h1>
@@ -56,97 +84,20 @@ export default function Page() {
               onBlur={() => handleSearch(searchKeyword)}
             />
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    股票代码
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    股票名称
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    最新价
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    涨跌幅
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    600000
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    浦发银行
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ¥7.23
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      +2.45%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button
-                      className="text-blue-600 hover:text-blue-900"
-                      onClick={() => handleOpenModal("600000", "浦发银行")}
-                    >
-                      查看详情
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    000001
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    平安银行
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ¥12.56
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                      -1.25%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button className="text-blue-600 hover:text-blue-900">
-                      查看详情
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          {/* Suspense 只能在服务的组件中使用 */}
+          {/* <Suspense key={query + currentPage} fallback={<StockTableSkeleton />}> */}
+          <StockTable
+            onOpenModal={handleOpenModal}
+            stockPoolColumns={stockPoolColumns}
+            tableList={tableList}
+          />
+          {/* </Suspense> */}
+
           <div className="mt-5 flex w-full justify-center">
             <Pagination totalPages={totalPages} />
           </div>
         </div>
       </div>
-      {/*{searchResults.msg}*/}
 
       <StockDetailModal
         isOpen={isModalOpen}
