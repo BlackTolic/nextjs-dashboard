@@ -216,3 +216,19 @@ export function InvoicesTableSkeleton() {
     </div>
   );
 }
+
+export function StockTableSkeleton() {
+  return (
+    <div className="mt-6 flow-root">
+      <div className="inline-block min-w-full align-middle">
+        <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
+          <div className="animate-pulse">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-200 mb-2 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

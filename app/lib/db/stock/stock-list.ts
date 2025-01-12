@@ -14,14 +14,14 @@ export async function insertStocks(stocks: StockInfo[]) {
       // console.log(stock,'stock')
       await sql`
         INSERT INTO stocks (
-          symbol,
-          name,
-          market,
-          industry,
-          listing_date,
-          total_share,
-          circulating_share,
-          total_market_value,
+          symbol,//股票代码
+          name,//股票名称
+          market,//市场
+          industry,//行业
+          listing_date,//上市日期
+          total_share,//总股本
+          circulating_share,//流通股本
+          total_market_value,//总市值
           circulating_market_value
         ) VALUES (
           ${stock.symbol},
@@ -45,14 +45,36 @@ export async function insertStocks(stocks: StockInfo[]) {
   }
 }
 
-export async function getStocks() {
+export async function getStocks(page: number = 1, pageSize: number = 10) {
   try {
+    // 计算偏移量
+    const offset = (page - 1) * pageSize;
+    
+    // 获取分页数据
     const stocks = await sql`
       SELECT * FROM stocks
       ORDER BY symbol ASC
+      LIMIT ${pageSize}
+      OFFSET ${offset}
     `;
     
-    return stocks.rows;
+    // 获取总记录数
+    const totalCount = await sql`
+      SELECT COUNT(*) FROM stocks
+    `;
+    
+    const total = parseInt(totalCount.rows[0].count);
+    const totalPages = Math.ceil(total / pageSize);
+    
+    return {
+      data: stocks.rows,
+      pagination: {
+        current: page,
+        pageSize,
+        total,
+        totalPages
+      }
+    };
   } catch (error) {
     console.error('获取股票数据时发生错误:', error);
     throw error;

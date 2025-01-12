@@ -1,5 +1,6 @@
 import { Revenue } from "./definitions";
-
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 /**
  * 格式化金额为美元格式
  * @param amount 金额（以分为单位）
@@ -84,3 +85,7 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
     totalPages,
   ];
 };
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
