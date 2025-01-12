@@ -4,24 +4,36 @@ import { lusitana } from '@/app/ui/fonts';
 import { ChartBarIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, useEffect } from 'react';
 import StockDetailModal from '@/app/ui/stock-pool/stock-detail-modal';
-import Pagination from '@/app/ui/invoices/pagination';
+import Pagination from '@/app/ui/components/pagination';
 // import { tickerSearchByKeywords } from "@/app/api/stock";
 // import { stockPoolColumns } from './constant';
 import StockTable from '@/app/ui/stock-pool/stock-table';
 import { StockTableSkeleton } from '@/app/ui/skeletons';
 import { getStocks } from '@/app/lib/db/stock/stock-list';
 import { stockPoolColumns, StockInfo } from './constant';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { toggleStockSubscription } from '@/app/lib/actions';
+import { useOptimistic, startTransition } from 'react';
 
 export default function Page() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) || 1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState({ code: '', name: '' });
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(10);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const query = searchKeyword;
+  const query = searchParams.get('query') || '';
   const [searchResults, setSearchResults] = useState([]);
   const [tableList, setTableList] = useState<StockInfo[]>([]);
   const prevSearchKeywordRef = useRef('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [subscribedStocks, setSubscribedStocks] = useState<string[]>([]);
+
+  // 使用 optimistic UI 更新订阅状态
+  // 当用户点击订阅按钮时，立即更新 UI，不等待服务器响应
+  const [optimisticSubscribed, addOptimisticSubscribe] = useOptimistic(subscribedStocks);
 
   const handleOpenModal = (code: string, name: string) => {
     setSelectedStock({ code, name });
@@ -38,10 +50,37 @@ export default function Page() {
     }
   };
 
-  //   console.log(data,555);
-  useEffect(() => {
-    const fetchStocks = async () => {
-      const data = await getStocks();
+  // 处理订阅/取消订阅的点击事件
+  const handleToggleSubscribe = async (stockCode: string) => {
+    try {
+      startTransition(() => {
+        addOptimisticSubscribe((state: string[]) =>
+          state.includes(stockCode)
+            ? state.filter((code) => code !== stockCode)
+            : [...state, stockCode]
+        );
+      });
+
+      const list = await toggleStockSubscription(stockCode);
+      setSubscribedStocks(list);
+    } catch (error) {
+      console.error('订阅切换失败:', error);
+      setSubscribedStocks(subscribedStocks);
+    }
+  };
+
+  // const handleToggleSubscribe = (code: string) => {
+  //   console.log(code, 999);
+  //   setSubscribedStocks((prev) =>
+  //     prev.includes(code) ? prev.filter((item) => item !== code) : [...prev, code]
+  //   );
+  // };
+
+  const fetchData = async (page = 1) => {
+    try {
+      setIsLoading(true);
+      setCurrentPage(page);
+      const data = await getStocks(page, 10);
       const stockList =
         data?.data?.map((item: any) => ({
           symbol: item.symbol,
@@ -57,8 +96,15 @@ export default function Page() {
       setTableList(stockList);
       const totalPages = Math.ceil(Number(data.pagination.total) / 10);
       setTotalPages(totalPages);
-    };
-    fetchStocks();
+    } catch (error) {
+      console.error('获取股票数据失败:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(currentPage);
   }, []);
 
   return (
@@ -86,15 +132,33 @@ export default function Page() {
           </div>
           {/* Suspense 只能在服务的组件中使用 */}
           {/* <Suspense key={query + currentPage} fallback={<StockTableSkeleton />}> */}
-          <StockTable
-            onOpenModal={handleOpenModal}
-            stockPoolColumns={stockPoolColumns}
-            tableList={tableList}
-          />
+          {isLoading ? (
+            <StockTableSkeleton />
+          ) : (
+            <StockTable
+              onOpenModal={handleOpenModal}
+              stockPoolColumns={stockPoolColumns}
+              tableList={tableList}
+              onToggleSubscribe={handleToggleSubscribe}
+              subscribedStocks={optimisticSubscribed}
+            />
+          )}
           {/* </Suspense> */}
 
           <div className="mt-5 flex w-full justify-center">
-            <Pagination totalPages={totalPages} />
+            <Pagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              baseUrl="/dashboard/stock-pool"
+              queryParams={{
+                query: searchParams.get('query') || '',
+              }}
+              onPageChange={(page) => {
+                console.log(page, 999);
+                fetchData(page);
+                router.push(`/dashboard/stock-pool`);
+              }}
+            />
           </div>
         </div>
       </div>
