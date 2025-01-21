@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { Subscription } from './constant';
 
 // 定义组件的属性接口
@@ -12,10 +12,10 @@ interface SubscriptionCardProps {
 }
 
 // 订阅卡片组件
-const SubscriptionCard = ({ 
-  subscription, 
+const SubscriptionCard = ({
+  subscription,
   onOptionsChange,
-  onValueChange 
+  onValueChange,
 }: SubscriptionCardProps) => {
   // 处理选项变更的函数
   const handleOptionChange = (optionKey: keyof Subscription['selectedOptions']) => {
