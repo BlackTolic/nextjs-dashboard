@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -17,7 +17,10 @@ import {
   User,
   Pagination,
 } from '@heroui/react';
+import { statusOptions } from './constant';
+// import { StockInfo } from '@/app/dashboard/stock-pool/constant';
 
+// 定义用户接口
 interface User {
   id: number;
   name: string;
@@ -30,226 +33,7 @@ interface User {
   [key: string]: string | number;
 }
 
-export const columns = [
-  { name: 'ID', uid: 'id', sortable: true },
-  { name: 'NAME', uid: 'name', sortable: true },
-  { name: 'AGE', uid: 'age', sortable: true },
-  { name: 'ROLE', uid: 'role', sortable: true },
-  { name: 'TEAM', uid: 'team' },
-  { name: 'EMAIL', uid: 'email' },
-  { name: 'STATUS', uid: 'status', sortable: true },
-  { name: 'ACTIONS', uid: 'actions' },
-];
-
-export const statusOptions = [
-  { name: 'Active', uid: 'active' },
-  { name: 'Paused', uid: 'paused' },
-  { name: 'Vacation', uid: 'vacation' },
-];
-
-export const users: User[] = [
-  {
-    id: 1,
-    name: 'Tony Reichert',
-    role: 'CEO',
-    team: 'Management',
-    status: 'active',
-    age: '29',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d',
-    email: 'tony.reichert@example.com',
-  },
-  {
-    id: 2,
-    name: 'Zoey Lang',
-    role: 'Tech Lead',
-    team: 'Development',
-    status: 'paused',
-    age: '25',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-    email: 'zoey.lang@example.com',
-  },
-  {
-    id: 3,
-    name: 'Jane Fisher',
-    role: 'Sr. Dev',
-    team: 'Development',
-    status: 'active',
-    age: '22',
-    avatar: 'https://i.pravatar.cc/150?u=a04258114e29026702d',
-    email: 'jane.fisher@example.com',
-  },
-  {
-    id: 4,
-    name: 'William Howard',
-    role: 'C.M.',
-    team: 'Marketing',
-    status: 'vacation',
-    age: '28',
-    avatar: 'https://i.pravatar.cc/150?u=a048581f4e29026701d',
-    email: 'william.howard@example.com',
-  },
-  {
-    id: 5,
-    name: 'Kristen Copper',
-    role: 'S. Manager',
-    team: 'Sales',
-    status: 'active',
-    age: '24',
-    avatar: 'https://i.pravatar.cc/150?u=a092581d4ef9026700d',
-    email: 'kristen.cooper@example.com',
-  },
-  {
-    id: 6,
-    name: 'Brian Kim',
-    role: 'P. Manager',
-    team: 'Management',
-    age: '29',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d',
-    email: 'brian.kim@example.com',
-    status: 'Active',
-  },
-  {
-    id: 7,
-    name: 'Michael Hunt',
-    role: 'Designer',
-    team: 'Design',
-    status: 'paused',
-    age: '27',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29027007d',
-    email: 'michael.hunt@example.com',
-  },
-  {
-    id: 8,
-    name: 'Samantha Brooks',
-    role: 'HR Manager',
-    team: 'HR',
-    status: 'active',
-    age: '31',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e27027008d',
-    email: 'samantha.brooks@example.com',
-  },
-  {
-    id: 9,
-    name: 'Frank Harrison',
-    role: 'F. Manager',
-    team: 'Finance',
-    status: 'vacation',
-    age: '33',
-    avatar: 'https://i.pravatar.cc/150?img=4',
-    email: 'frank.harrison@example.com',
-  },
-  {
-    id: 10,
-    name: 'Emma Adams',
-    role: 'Ops Manager',
-    team: 'Operations',
-    status: 'active',
-    age: '35',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    email: 'emma.adams@example.com',
-  },
-  {
-    id: 11,
-    name: 'Brandon Stevens',
-    role: 'Jr. Dev',
-    team: 'Development',
-    status: 'active',
-    age: '22',
-    avatar: 'https://i.pravatar.cc/150?img=8',
-    email: 'brandon.stevens@example.com',
-  },
-  {
-    id: 12,
-    name: 'Megan Richards',
-    role: 'P. Manager',
-    team: 'Product',
-    status: 'paused',
-    age: '28',
-    avatar: 'https://i.pravatar.cc/150?img=10',
-    email: 'megan.richards@example.com',
-  },
-  {
-    id: 13,
-    name: 'Oliver Scott',
-    role: 'S. Manager',
-    team: 'Security',
-    status: 'active',
-    age: '37',
-    avatar: 'https://i.pravatar.cc/150?img=12',
-    email: 'oliver.scott@example.com',
-  },
-  {
-    id: 14,
-    name: 'Grace Allen',
-    role: 'M. Specialist',
-    team: 'Marketing',
-    status: 'active',
-    age: '30',
-    avatar: 'https://i.pravatar.cc/150?img=16',
-    email: 'grace.allen@example.com',
-  },
-  {
-    id: 15,
-    name: 'Noah Carter',
-    role: 'IT Specialist',
-    team: 'I. Technology',
-    status: 'paused',
-    age: '31',
-    avatar: 'https://i.pravatar.cc/150?img=15',
-    email: 'noah.carter@example.com',
-  },
-  {
-    id: 16,
-    name: 'Ava Perez',
-    role: 'Manager',
-    team: 'Sales',
-    status: 'active',
-    age: '29',
-    avatar: 'https://i.pravatar.cc/150?img=20',
-    email: 'ava.perez@example.com',
-  },
-  {
-    id: 17,
-    name: 'Liam Johnson',
-    role: 'Data Analyst',
-    team: 'Analysis',
-    status: 'active',
-    age: '28',
-    avatar: 'https://i.pravatar.cc/150?img=33',
-    email: 'liam.johnson@example.com',
-  },
-  {
-    id: 18,
-    name: 'Sophia Taylor',
-    role: 'QA Analyst',
-    team: 'Testing',
-    status: 'active',
-    age: '27',
-    avatar: 'https://i.pravatar.cc/150?img=29',
-    email: 'sophia.taylor@example.com',
-  },
-  {
-    id: 19,
-    name: 'Lucas Harris',
-    role: 'Administrator',
-    team: 'Information Technology',
-    status: 'paused',
-    age: '32',
-    avatar: 'https://i.pravatar.cc/150?img=50',
-    email: 'lucas.harris@example.com',
-  },
-  {
-    id: 20,
-    name: 'Mia Robinson',
-    role: 'Coordinator',
-    team: 'Operations',
-    status: 'active',
-    age: '26',
-    avatar: 'https://i.pravatar.cc/150?img=45',
-    email: 'mia.robinson@example.com',
-  },
-];
-
+// 首字母大写的工具函数
 export function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
 }
@@ -261,6 +45,7 @@ interface IconProps {
   [key: string]: any;
 }
 
+// 加号图标
 export const PlusIcon = ({ size = 24, width, height, ...props }: IconProps) => {
   return (
     <svg
@@ -287,6 +72,7 @@ export const PlusIcon = ({ size = 24, width, height, ...props }: IconProps) => {
   );
 };
 
+// 垂直点图标
 export const VerticalDotsIcon = ({ size = 24, width, height, ...props }: IconProps) => {
   return (
     <svg
@@ -307,6 +93,7 @@ export const VerticalDotsIcon = ({ size = 24, width, height, ...props }: IconPro
   );
 };
 
+// 搜索图标
 export const SearchIcon = (props: IconProps) => {
   return (
     <svg
@@ -337,6 +124,7 @@ export const SearchIcon = (props: IconProps) => {
   );
 };
 
+// 向下箭头图标
 export const ChevronDownIcon = ({ strokeWidth = 1.5, ...otherProps }) => {
   return (
     <svg
@@ -361,18 +149,21 @@ export const ChevronDownIcon = ({ strokeWidth = 1.5, ...otherProps }) => {
   );
 };
 
+// 状态颜色
 type StatusColor = 'success' | 'danger' | 'warning' | 'default' | 'primary' | 'secondary';
 
+// 定义状态颜色映射
 const statusColorMap: { [key: string]: StatusColor } = {
   active: 'success',
   paused: 'danger',
   vacation: 'warning',
 };
 
+// 默认显示的列
 const INITIAL_VISIBLE_COLUMNS = ['name', 'role', 'status', 'actions'];
 
 type Key = string | number;
-type Selection = Set<Key> & { anchorKey?: string; currentKey?: string };
+type Selection = 'all' | Set<Key>;
 
 type SortDirection = 'ascending' | 'descending';
 
@@ -381,26 +172,52 @@ interface SortDescriptor {
   direction: SortDirection;
 }
 
-const SeniorTable = () => {
-  const [filterValue, setFilterValue] = React.useState('');
-  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set([]));
-  const [visibleColumns, setVisibleColumns] = React.useState(INITIAL_VISIBLE_COLUMNS);
-  const [statusFilter, setStatusFilter] = React.useState<Selection>(new Set([]));
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
+interface Column {
+  prop: string;
+  label: string;
+  sortable: boolean;
+}
+
+interface Item {
+  [key: string]: string | number;
+}
+
+export interface SeniorTableProps<T = any> {
+  columns: Column[];
+  dataSource: T[];
+  rowKey: string;
+  onRow: (record: T) => { onClick: () => void };
+  operations: {
+    key: string;
+    label: (record: T) => string;
+    onClick: (record: T) => void;
+  }[];
+}
+
+const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
+  const { columns, dataSource, rowKey, onRow, operations } = props;
+  console.log(columns, 'columns');
+  // 状态管理
+  const [filterValue, setFilterValue] = useState(''); // 搜索过滤值
+  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([])); // 选中的行
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(INITIAL_VISIBLE_COLUMNS); // 可见列
+  const [statusFilter, setStatusFilter] = useState<Selection>(new Set([])); // 状态过滤
+  const [rowsPerPage, setRowsPerPage] = useState(5); // 每页显示行数
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'age',
     direction: 'ascending',
-  });
-  const [page, setPage] = React.useState(1);
-
+  }); // 排序描述符
+  const [page, setPage] = React.useState(1); // 当前页码
+  // 是否开启搜索过滤
   const hasSearchFilter = Boolean(filterValue);
-
-  const headerColumns = React.useMemo(() => {
-    return columns.filter((column) => visibleColumns.includes(column.uid));
+  //
+  const headerColumns = useMemo(() => {
+    return columns.filter((column) => visibleColumns.includes(column.prop));
   }, [visibleColumns]);
 
-  const filteredItems = React.useMemo(() => {
-    let filteredUsers = [...users];
+  // 根据搜索条件和状态过滤用户数据
+  const filteredItems = useMemo(() => {
+    let filteredUsers = [...dataSource];
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
         user.name.toLowerCase().includes(filterValue.toLowerCase())
@@ -410,19 +227,17 @@ const SeniorTable = () => {
       filteredUsers = filteredUsers.filter((user) => statusFilter.has(user.status));
     }
     return filteredUsers;
-  }, [users, filterValue, statusFilter]);
-
+  }, [filterValue, statusFilter]);
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
-
-  const items = React.useMemo(() => {
+  const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-
     return filteredItems.slice(start, end);
   }, [page, filteredItems, rowsPerPage]);
 
-  const sortedItems = React.useMemo(() => {
-    return [...items].sort((a: User, b: User) => {
+  // 排序
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a: Item, b: Item) => {
       const first = a[sortDescriptor.column];
       const second = b[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
@@ -431,55 +246,15 @@ const SeniorTable = () => {
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user: User, columnKey: Key) => {
-    const cellValue = user[columnKey];
+  //渲染单元格内容
+  const renderCell = useCallback((item: Item, columnKey: Key) => {
+    const cellValue = item[columnKey];
 
-    switch (columnKey) {
-      case 'name':
-        return (
-          <User
-            avatarProps={{ radius: 'lg', src: user.avatar }}
-            description={user.email}
-            name={cellValue}
-          >
-            {user.email}
-          </User>
-        );
-      case 'role':
-        return (
-          <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.team}</p>
-          </div>
-        );
-      case 'status':
-        return (
-          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
-            {cellValue}
-          </Chip>
-        );
-      case 'actions':
-        return (
-          <div className="relative flex justify-end items-center gap-2">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <VerticalDotsIcon className="text-default-300" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem key="view">View</DropdownItem>
-                <DropdownItem key="edit">Edit</DropdownItem>
-                <DropdownItem key="delete">Delete</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        );
-      default:
-        return cellValue;
-    }
+    // 简化处理，直接返回单元格值
+    return cellValue;
   }, []);
 
+  // 分页控制函数
   const onNextPage = React.useCallback(() => {
     if (page < pages) {
       setPage(page + 1);
@@ -492,12 +267,14 @@ const SeniorTable = () => {
     }
   }, [page]);
 
+  // 每页行数变化处理
   const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
 
-  const onSearchChange = React.useCallback((value: string) => {
+  // 搜索处理函数
+  const onSearchChange = useCallback((value: string) => {
     if (value) {
       setFilterValue(value);
       setPage(1);
@@ -506,25 +283,29 @@ const SeniorTable = () => {
     }
   }, []);
 
-  const onClear = React.useCallback(() => {
+  // 清除搜索
+  const onClear = useCallback(() => {
     setFilterValue('');
     setPage(1);
   }, []);
 
-  const topContent = React.useMemo(() => {
+  // 表格顶部内容
+  const topContent = useMemo(() => {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex justify-between gap-3 items-end">
+          {/* 搜索框  */}
           <Input
             isClearable
             className="w-full sm:max-w-[44%]"
-            placeholder="Search by name..."
+            placeholder="搜索股票代码或者名称..."
             startContent={<SearchIcon />}
             value={filterValue}
             onClear={() => onClear()}
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
+            {/* 状态栏配置 */}
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
@@ -537,7 +318,9 @@ const SeniorTable = () => {
                 closeOnSelect={false}
                 selectedKeys={statusFilter}
                 selectionMode="multiple"
-                onSelectionChange={setStatusFilter}
+                onSelectionChange={(keys) => {
+                  setStatusFilter(keys instanceof Set ? keys : new Set());
+                }}
               >
                 {statusOptions.map((status) => (
                   <DropdownItem key={status.uid} className="capitalize">
@@ -546,6 +329,7 @@ const SeniorTable = () => {
                 ))}
               </DropdownMenu>
             </Dropdown>
+            {/* 自定义列配置 */}
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
@@ -556,33 +340,40 @@ const SeniorTable = () => {
                 disallowEmptySelection
                 aria-label="Table Columns"
                 closeOnSelect={false}
-                selectedKeys={visibleColumns}
+                selectedKeys={new Set(visibleColumns)}
                 selectionMode="multiple"
-                onSelectionChange={setVisibleColumns}
+                onSelectionChange={(keys) => {
+                  const selectedKeys = Array.from(keys instanceof Set ? keys : new Set()).map(
+                    String
+                  );
+                  setVisibleColumns(selectedKeys);
+                }}
               >
-                {columns.map((column) => (
-                  <DropdownItem key={column.uid} className="capitalize">
-                    {capitalize(column.name)}
+                {columns?.map((column) => (
+                  <DropdownItem key={column.prop} className="capitalize">
+                    {capitalize(column.label)}
                   </DropdownItem>
                 ))}
               </DropdownMenu>
             </Dropdown>
+            {/* 添加新信息 */}
             <Button color="primary" endContent={<PlusIcon />}>
               Add New
             </Button>
           </div>
         </div>
+        {/* 分页 */}
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {users.length} users</span>
+          <span className="text-default-400 text-small">Total {100} users</span>
           <label className="flex items-center text-default-400 text-small">
             Rows per page:
             <select
               className="bg-transparent outline-none text-default-400 text-small"
               onChange={onRowsPerPageChange}
             >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
+              <option value="5">50</option>
+              <option value="10">100</option>
+              <option value="15">200</option>
             </select>
           </label>
         </div>
@@ -593,11 +384,11 @@ const SeniorTable = () => {
     statusFilter,
     visibleColumns,
     onRowsPerPageChange,
-    users.length,
     onSearchChange,
     hasSearchFilter,
   ]);
 
+  // 表格底部内容
   const bottomContent = React.useMemo(() => {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
@@ -649,23 +440,25 @@ const SeniorTable = () => {
       sortDescriptor={sortDescriptor}
       topContent={topContent}
       topContentPlacement="outside"
-      onSelectionChange={(keys: Selection) => setSelectedKeys(keys)}
+      onSelectionChange={(keys) => {
+        setSelectedKeys(keys instanceof Set ? keys : new Set());
+      }}
       onSortChange={handleSortChange}
     >
       <TableHeader columns={headerColumns}>
         {(column) => (
           <TableColumn
-            key={column.uid}
-            align={column.uid === 'actions' ? 'center' : 'start'}
+            key={column.prop}
+            align={column.prop === 'actions' ? 'center' : 'start'}
             allowsSorting={column.sortable}
           >
-            {column.name}
+            {column.label}
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody emptyContent={'No users found'} items={sortedItems}>
+      <TableBody emptyContent={'No data found'} items={sortedItems}>
         {(item) => (
-          <TableRow key={item.id}>
+          <TableRow key={item[rowKey]}>
             {(columnKey) => <TableCell>{renderCell(item, columnKey as Key)}</TableCell>}
           </TableRow>
         )}

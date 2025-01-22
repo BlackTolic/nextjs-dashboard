@@ -8,6 +8,7 @@ export interface StockInfo {
   circulatingShare: number;
   totalMarketValue: number;
   circulatingMarketValue: number;
+  [key: string]: string | number;
 }
 
 export interface StockPoolColumn {
@@ -15,24 +16,25 @@ export interface StockPoolColumn {
   dataIndex: string;
 }
 
-export const stockPoolColumns: StockPoolColumn[] = [
+export const stockPoolColumns = [
   {
-    title: '股票代码',
-    dataIndex: 'symbol',
+    prop: 'symbol',
+    label: '股票代码',
+    sortable: true,
   },
   {
-    title: '股票名称',
-    dataIndex: 'name',
+    prop: 'name',
+    label: '股票名称',
+    sortable: true,
   },
   {
-    title: '行业',
-    dataIndex: 'industry',
-
-  },  
+    prop: 'industry',
+    label: '行业',
+    sortable: true,
+  },
   {
-    title: '总市值',
-    dataIndex: 'total_market_value',
+    prop: 'total_market_value',
+    label: '总市值',
+    sortable: true,
   },
 ];
-
-
