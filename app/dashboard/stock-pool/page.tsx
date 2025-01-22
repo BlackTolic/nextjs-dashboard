@@ -7,7 +7,8 @@ import StockDetailModal from '@/app/ui/stock-pool/stock-detail-modal';
 import Pagination from '@/app/ui/components/pagination';
 // import { tickerSearchByKeywords } from "@/app/api/stock";
 // import { stockPoolColumns } from './constant';
-import StockTable from '@/app/ui/stock-pool/stock-table';
+import SeniorTable from '@/app/ui/components/senior-table';
+import type { SeniorTableProps } from '@/app/ui/components/senior-table';
 import { StockTableSkeleton } from '@/app/ui/skeletons';
 import { getStocks } from '@/app/lib/db/stock/stock-list';
 import { stockPoolColumns, StockInfo } from './constant';
@@ -93,6 +94,7 @@ export default function Page() {
           totalMarketValue: item.total_market_value,
           circulatingMarketValue: item.circulating_market_value,
         })) ?? [];
+      console.log(stockList, 'stockList');
       setTableList(stockList);
       const totalPages = Math.ceil(Number(data.pagination.total) / 10);
       setTotalPages(totalPages);
@@ -118,7 +120,7 @@ export default function Page() {
 
       <div className="mt-4 rounded-lg bg-gray-50 p-6">
         <div className="flex flex-col gap-4">
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
             </div>
@@ -129,23 +131,32 @@ export default function Page() {
               onChange={(e) => setSearchKeyword(e.target.value)}
               onBlur={() => handleSearch(searchKeyword)}
             />
-          </div>
+          </div> */}
           {/* Suspense 只能在服务的组件中使用 */}
           {/* <Suspense key={query + currentPage} fallback={<StockTableSkeleton />}> */}
           {isLoading ? (
             <StockTableSkeleton />
           ) : (
-            <StockTable
-              onOpenModal={handleOpenModal}
-              stockPoolColumns={stockPoolColumns}
-              tableList={tableList}
-              onToggleSubscribe={handleToggleSubscribe}
-              subscribedStocks={optimisticSubscribed}
+            <SeniorTable<StockInfo>
+              columns={stockPoolColumns}
+              dataSource={tableList}
+              rowKey="symbol"
+              onRow={(record: StockInfo) => ({
+                onClick: () => handleOpenModal(record.symbol, record.name),
+              })}
+              operations={[
+                {
+                  key: 'subscribe',
+                  label: (record: StockInfo) =>
+                    optimisticSubscribed.includes(record.symbol) ? '取消订阅' : '订阅',
+                  onClick: (record: StockInfo) => handleToggleSubscribe(record.symbol),
+                },
+              ]}
             />
           )}
           {/* </Suspense> */}
 
-          <div className="mt-5 flex w-full justify-center">
+          {/* <div className="mt-5 flex w-full justify-center">
             <Pagination
               totalPages={totalPages}
               currentPage={currentPage}
@@ -159,7 +170,7 @@ export default function Page() {
                 router.push(`/dashboard/stock-pool`);
               }}
             />
-          </div>
+          </div> */}
         </div>
       </div>
 
