@@ -1,16 +1,40 @@
 module.exports = {
+  root: true,
   parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'prettier', 'import'],
   extends: [
-    'next/core-web-vitals',
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'prettier',
+    'plugin:react/recommended',
+    'plugin:react-hooks/recommended',
+    'plugin:prettier/recommended',
+    'next/core-web-vitals',
   ],
-  plugins: ['@typescript-eslint'],
-  root: true,
+  env: {
+    browser: true,
+    es2021: true,
+    node: true,
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
   rules: {
+    'prettier/prettier': 'error',
+    'react/react-in-jsx-scope': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': 'warn',
-    'no-console': 'warn',
+    'import/order': [
+      'error',
+      {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+        'newlines-between': 'always',
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+      },
+    ],
   },
 };

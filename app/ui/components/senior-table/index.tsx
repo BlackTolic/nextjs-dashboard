@@ -15,10 +15,17 @@ import {
   DropdownItem,
   Chip,
   User,
-  Pagination,
+  Pagination
 } from '@heroui/react';
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+  EllipsisVerticalIcon
+} from '@heroicons/react/24/outline';
 import { statusOptions } from './constant';
 // import { StockInfo } from '@/app/dashboard/stock-pool/constant';
+import { capitalize } from '@/app/lib/utils';
 
 // 定义用户接口
 interface User {
@@ -33,121 +40,12 @@ interface User {
   [key: string]: string | number;
 }
 
-// 首字母大写的工具函数
-export function capitalize(s: string): string {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
-}
-
 interface IconProps {
   size?: number;
   width?: number;
   height?: number;
   [key: string]: any;
 }
-
-// 加号图标
-export const PlusIcon = ({ size = 24, width, height, ...props }: IconProps) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height={size || height}
-      role="presentation"
-      viewBox="0 0 24 24"
-      width={size || width}
-      {...props}
-    >
-      <g
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-      >
-        <path d="M6 12h12" />
-        <path d="M12 18V6" />
-      </g>
-    </svg>
-  );
-};
-
-// 垂直点图标
-export const VerticalDotsIcon = ({ size = 24, width, height, ...props }: IconProps) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height={size || height}
-      role="presentation"
-      viewBox="0 0 24 24"
-      width={size || width}
-      {...props}
-    >
-      <path
-        d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-};
-
-// 搜索图标
-export const SearchIcon = (props: IconProps) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height="1em"
-      role="presentation"
-      viewBox="0 0 24 24"
-      width="1em"
-      {...props}
-    >
-      <path
-        d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-      <path
-        d="M22 22L20 20"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-};
-
-// 向下箭头图标
-export const ChevronDownIcon = ({ strokeWidth = 1.5, ...otherProps }) => {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      focusable="false"
-      height="1em"
-      role="presentation"
-      viewBox="0 0 24 24"
-      width="1em"
-      {...otherProps}
-    >
-      <path
-        d="m19.92 8.95-6.52 6.52c-.77.77-2.03.77-2.8 0L4.08 8.95"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeMiterlimit={10}
-        strokeWidth={strokeWidth}
-      />
-    </svg>
-  );
-};
 
 // 状态颜色
 type StatusColor = 'success' | 'danger' | 'warning' | 'default' | 'primary' | 'secondary';
@@ -156,7 +54,7 @@ type StatusColor = 'success' | 'danger' | 'warning' | 'default' | 'primary' | 's
 const statusColorMap: { [key: string]: StatusColor } = {
   active: 'success',
   paused: 'danger',
-  vacation: 'warning',
+  vacation: 'warning'
 };
 
 // 默认显示的列
@@ -182,7 +80,13 @@ interface Item {
   [key: string]: string | number;
 }
 
-export interface SeniorTableProps<T = any> {
+interface PageConfig{
+  currentPage:string;
+  pageSize:string;
+  currentPageSize:string;
+}
+
+export interface SeniorTableProps<T> {
   columns: Column[];
   dataSource: T[];
   rowKey: string;
@@ -192,43 +96,66 @@ export interface SeniorTableProps<T = any> {
     label: (record: T) => string;
     onClick: (record: T) => void;
   }[];
+  isOpenSearchFilter: boolean;
+  // 默认展示headcolumns
+  defaultVisibleColumns?: string[];
+  // 分页配置
+  pageConfig?:PageConfig;
+  changePage?:() => void
 }
 
 const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
-  const { columns, dataSource, rowKey, onRow, operations } = props;
-  console.log(columns, 'columns');
+  const {
+    columns,
+    dataSource,
+    rowKey,
+    onRow,
+    operations,
+    isOpenSearchFilter,
+    defaultVisibleColumns
+  } = props;
   // 状态管理
   const [filterValue, setFilterValue] = useState(''); // 搜索过滤值
-  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([])); // 选中的行
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(INITIAL_VISIBLE_COLUMNS); // 可见列
+  // 选中的行
+  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
+  // 可见列
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(
+    !defaultVisibleColumns ? columns.map(x => x.prop) : defaultVisibleColumns
+  );
   const [statusFilter, setStatusFilter] = useState<Selection>(new Set([])); // 状态过滤
-  const [rowsPerPage, setRowsPerPage] = useState(5); // 每页显示行数
+  // 每页显示行数
+  const [rowsPerPage, setRowsPerPage] = useState(50);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'age',
-    direction: 'ascending',
+    direction: 'ascending'
   }); // 排序描述符
   const [page, setPage] = React.useState(1); // 当前页码
   // 是否开启搜索过滤
   const hasSearchFilter = Boolean(filterValue);
-  //
+
+  // 展示自定义列的项
   const headerColumns = useMemo(() => {
-    return columns.filter((column) => visibleColumns.includes(column.prop));
+    // console.log(visibleColumns, 'visibleColumns');
+    return columns.filter(column => visibleColumns.includes(column.prop));
   }, [visibleColumns]);
 
   // 根据搜索条件和状态过滤用户数据
   const filteredItems = useMemo(() => {
     let filteredUsers = [...dataSource];
     if (hasSearchFilter) {
-      filteredUsers = filteredUsers.filter((user) =>
-        user.name.toLowerCase().includes(filterValue.toLowerCase())
-      );
+      filteredUsers = filteredUsers.filter(user => {
+        const searchValue = String(user.name).toLowerCase();
+        return searchValue.includes(filterValue.toLowerCase());
+      });
     }
     if (statusFilter instanceof Set && statusFilter.size > 0) {
-      filteredUsers = filteredUsers.filter((user) => statusFilter.has(user.status));
+      filteredUsers = filteredUsers.filter(user => statusFilter.has(user.status));
     }
     return filteredUsers;
   }, [filterValue, statusFilter]);
+
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
+  //
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
@@ -241,7 +168,6 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
       const first = a[sortDescriptor.column];
       const second = b[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
-
       return sortDescriptor.direction === 'descending' ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
@@ -295,20 +221,33 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
       <div className="flex flex-col gap-4">
         <div className="flex justify-between gap-3 items-end">
           {/* 搜索框  */}
-          <Input
-            isClearable
-            className="w-full sm:max-w-[44%]"
-            placeholder="搜索股票代码或者名称..."
-            startContent={<SearchIcon />}
-            value={filterValue}
-            onClear={() => onClear()}
-            onValueChange={onSearchChange}
-          />
+          {isOpenSearchFilter && (
+            <Input
+              isClearable
+              className="w-full sm:max-w-[44%]"
+              classNames={{
+                base: 'max-w-full',
+                mainWrapper: 'h-full',
+                input: 'text-small',
+                inputWrapper:
+                  'h-10 bg-default-100 dark:bg-default-50 border-0 hover:bg-default-200',
+                clearButton: 'text-default-400 hover:text-default-600'
+              }}
+              placeholder="搜索股票代码或者名称..."
+              size="sm"
+              startContent={
+                <MagnifyingGlassIcon className="text-default-400 pointer-events-none flex-shrink-0 h-4 w-4" />
+              }
+              value={filterValue}
+              onClear={() => onClear()}
+              onValueChange={onSearchChange}
+            />
+          )}
           <div className="flex gap-3">
             {/* 状态栏配置 */}
-            <Dropdown>
+            {/* <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                <Button endContent={<ChevronDownIcon className="h-4 w-4" />} variant="flat">
                   Status
                 </Button>
               </DropdownTrigger>
@@ -318,38 +257,38 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
                 closeOnSelect={false}
                 selectedKeys={statusFilter}
                 selectionMode="multiple"
-                onSelectionChange={(keys) => {
+                onSelectionChange={keys => {
                   setStatusFilter(keys instanceof Set ? keys : new Set());
                 }}
               >
-                {statusOptions.map((status) => (
+                {statusOptions.map(status => (
                   <DropdownItem key={status.uid} className="capitalize">
                     {capitalize(status.name)}
                   </DropdownItem>
                 ))}
               </DropdownMenu>
-            </Dropdown>
+            </Dropdown> */}
             {/* 自定义列配置 */}
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-                  Columns
+                <Button endContent={<ChevronDownIcon className="h-4 w-4" />} variant="flat">
+                  自定义列配置
                 </Button>
               </DropdownTrigger>
               <DropdownMenu
                 disallowEmptySelection
                 aria-label="Table Columns"
                 closeOnSelect={false}
-                selectedKeys={new Set(visibleColumns)}
+                selectedKeys={visibleColumns}
                 selectionMode="multiple"
-                onSelectionChange={(keys) => {
+                onSelectionChange={keys => {
                   const selectedKeys = Array.from(keys instanceof Set ? keys : new Set()).map(
                     String
                   );
                   setVisibleColumns(selectedKeys);
                 }}
               >
-                {columns?.map((column) => (
+                {columns?.map(column => (
                   <DropdownItem key={column.prop} className="capitalize">
                     {capitalize(column.label)}
                   </DropdownItem>
@@ -357,8 +296,8 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
               </DropdownMenu>
             </Dropdown>
             {/* 添加新信息 */}
-            <Button color="primary" endContent={<PlusIcon />}>
-              Add New
+            <Button color="primary" endContent={<PlusIcon className="h-4 w-4" />}>
+              新增
             </Button>
           </div>
         </div>
@@ -385,7 +324,7 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
     visibleColumns,
     onRowsPerPageChange,
     onSearchChange,
-    hasSearchFilter,
+    hasSearchFilter
   ]);
 
   // 表格底部内容
@@ -406,14 +345,14 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
           total={pages}
           onChange={setPage}
         />
-        <div className="hidden sm:flex w-[30%] justify-end gap-2">
+        {/* <div className="hidden sm:flex w-[30%] justify-end gap-2">
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
             Previous
           </Button>
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
             Next
           </Button>
-        </div>
+        </div> */}
       </div>
     );
   }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
@@ -433,20 +372,18 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
       bottomContent={bottomContent}
       bottomContentPlacement="outside"
       classNames={{
-        wrapper: 'max-h-[382px]',
+        wrapper: 'max-h-[500px]'
       }}
       selectedKeys={selectedKeys}
       selectionMode="multiple"
       sortDescriptor={sortDescriptor}
       topContent={topContent}
       topContentPlacement="outside"
-      onSelectionChange={(keys) => {
-        setSelectedKeys(keys instanceof Set ? keys : new Set());
-      }}
+      onSelectionChange={keys => setSelectedKeys(keys)}
       onSortChange={handleSortChange}
     >
       <TableHeader columns={headerColumns}>
-        {(column) => (
+        {column => (
           <TableColumn
             key={column.prop}
             align={column.prop === 'actions' ? 'center' : 'start'}
@@ -457,9 +394,9 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
         )}
       </TableHeader>
       <TableBody emptyContent={'No data found'} items={sortedItems}>
-        {(item) => (
+        {item => (
           <TableRow key={item[rowKey]}>
-            {(columnKey) => <TableCell>{renderCell(item, columnKey as Key)}</TableCell>}
+            {columnKey => <TableCell>{renderCell(item, columnKey as Key)}</TableCell>}
           </TableRow>
         )}
       </TableBody>
