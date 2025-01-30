@@ -7,6 +7,11 @@ import { subscriptions } from '@/app/ui/components/card/constant';
 import { Button } from '@/app/ui/button';
 import { updateStocksFromXueqiu } from '@/app/lib/db/stock/stock-list';
 import SeniorTable from '@/app/ui/components/senior-table';
+import dynamic from 'next/dynamic';
+
+// const SeniorTable = dynamic(import('@/app/ui/components/senior-table'), {
+//   ssr: false,
+// });
 
 const Subscriptions = () => {
   const handleTest = async () => {
