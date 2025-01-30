@@ -35,7 +35,6 @@ const Subscriptions = () => {
 
   return (
     <div>
-      <SeniorTable />
       <div className="flex w-full items-center justify-between">
         <h1 className={`${lusitana.className} text-2xl flex items-center gap-2`}>
           <BellIcon className="w-6 h-6" />

@@ -75,6 +75,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms'), heroui() /* , require("tailwindcss-animate") */],
+  plugins: [heroui() /* , require("tailwindcss-animate") */],
 };
 export default config;

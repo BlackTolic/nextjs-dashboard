@@ -57,7 +57,7 @@ export default function Page() {
       startTransition(() => {
         addOptimisticSubscribe((state: string[]) =>
           state.includes(stockCode)
-            ? state.filter((code) => code !== stockCode)
+            ? state.filter(code => code !== stockCode)
             : [...state, stockCode]
         );
       });
@@ -92,7 +92,7 @@ export default function Page() {
           totalShare: item.total_share,
           circulatingShare: item.circulating_share,
           totalMarketValue: item.total_market_value,
-          circulatingMarketValue: item.circulating_market_value,
+          circulatingMarketValue: item.circulating_market_value
         })) ?? [];
       console.log(stockList, 'stockList');
       setTableList(stockList);
@@ -138,19 +138,20 @@ export default function Page() {
             <StockTableSkeleton />
           ) : (
             <SeniorTable<StockInfo>
+              isOpenSearchFilter
               columns={stockPoolColumns}
               dataSource={tableList}
               rowKey="symbol"
               onRow={(record: StockInfo) => ({
-                onClick: () => handleOpenModal(record.symbol, record.name),
+                onClick: () => handleOpenModal(record.symbol, record.name)
               })}
               operations={[
                 {
                   key: 'subscribe',
                   label: (record: StockInfo) =>
                     optimisticSubscribed.includes(record.symbol) ? '取消订阅' : '订阅',
-                  onClick: (record: StockInfo) => handleToggleSubscribe(record.symbol),
-                },
+                  onClick: (record: StockInfo) => handleToggleSubscribe(record.symbol)
+                }
               ]}
             />
           )}
