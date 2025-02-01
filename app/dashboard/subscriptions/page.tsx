@@ -8,15 +8,12 @@ import { Button } from '@/app/ui/button';
 import { updateStocksFromXueqiu } from '@/app/lib/db/stock/stock-list';
 import SeniorTable from '@/app/ui/components/senior-table';
 import dynamic from 'next/dynamic';
-
-// const SeniorTable = dynamic(import('@/app/ui/components/senior-table'), {
-//   ssr: false,
-// });
+import { pollXueqiuStocksList } from '@/app/crawler/stock-crawler';
 
 const Subscriptions = () => {
   const handleTest = async () => {
     try {
-      const stocks = await updateStocksFromXueqiu();
+      const stocks = await pollXueqiuStocksList();
       console.log('抓取到的股票数据:', stocks);
     } catch (error) {
       console.error('测试抓取失败:', error);
@@ -26,7 +23,7 @@ const Subscriptions = () => {
   const handlePolling = async () => {
     try {
       console.log('开始轮询更新...');
-      const stocks = await updateStocksFromXueqiu();
+      const stocks = await pollXueqiuStocksList();
       console.log('轮询更新结果:', stocks);
     } catch (error) {
       console.error('轮询更新失败:', error);
@@ -57,12 +54,7 @@ const Subscriptions = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -76,7 +68,7 @@ const Subscriptions = () => {
 
       {/* Subscription cards */}
       <div className="flex flex-wrap gap-4">
-        {subscriptions.map((sub) => (
+        {subscriptions.map(sub => (
           <SubscriptionCard
             key={sub.id}
             subscription={{
@@ -88,8 +80,8 @@ const Subscriptions = () => {
               selectedOptions: {
                 showMaxValue: true,
                 showMinValue: true,
-                showChart: false,
-              },
+                showChart: false
+              }
             }}
           />
         ))}

@@ -13,5 +13,5 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "prettier.configPath": "./prettierrc.js"
+  "prettier.configPath": "./.prettierrc.js"
 }
