@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -17,12 +17,7 @@ import {
   User,
   Pagination
 } from '@heroui/react';
-import {
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ChevronDownIcon,
-  EllipsisVerticalIcon
-} from '@heroicons/react/24/outline';
+import { PlusIcon, MagnifyingGlassIcon, ChevronDownIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { statusOptions } from './constant';
 // import { StockInfo } from '@/app/dashboard/stock-pool/constant';
 import { capitalize } from '@/app/lib/utils';
@@ -80,10 +75,12 @@ interface Item {
   [key: string]: string | number;
 }
 
-interface PageConfig{
-  currentPage:string;
-  pageSize:string;
-  currentPageSize:string;
+interface PageConfig {
+  total: number;
+  current: number;
+  pageSize: number;
+  pageSizes: number[]; // 添加分页选项数组
+  service: boolean; // 添加服务端分页标志
 }
 
 export interface SeniorTableProps<T> {
@@ -91,17 +88,13 @@ export interface SeniorTableProps<T> {
   dataSource: T[];
   rowKey: string;
   onRow: (record: T) => { onClick: () => void };
-  operations: {
-    key: string;
-    label: (record: T) => string;
-    onClick: (record: T) => void;
-  }[];
   isOpenSearchFilter: boolean;
   // 默认展示headcolumns
   defaultVisibleColumns?: string[];
   // 分页配置
-  pageConfig?:PageConfig;
-  changePage?:() => void
+  pageConfig?: PageConfig;
+  onPageChange: (page: number, pageSize: number) => void; // 分页变化回调
+  loading?: boolean; // 添加 loading 属性
 }
 
 const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
@@ -110,12 +103,14 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
     dataSource,
     rowKey,
     onRow,
-    operations,
     isOpenSearchFilter,
-    defaultVisibleColumns
+    defaultVisibleColumns,
+    pageConfig,
+    onPageChange,
+    loading
   } = props;
-  // 状态管理
-  const [filterValue, setFilterValue] = useState(''); // 搜索过滤值
+
+  const [filterValue, setFilterValue] = useState('');
   // 选中的行
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   // 可见列
@@ -125,14 +120,14 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
   const [statusFilter, setStatusFilter] = useState<Selection>(new Set([])); // 状态过滤
   // 每页显示行数
   const [rowsPerPage, setRowsPerPage] = useState(50);
+  // 排序描述符
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'age',
     direction: 'ascending'
-  }); // 排序描述符
+  });
   const [page, setPage] = React.useState(1); // 当前页码
   // 是否开启搜索过滤
   const hasSearchFilter = Boolean(filterValue);
-
   // 展示自定义列的项
   const headerColumns = useMemo(() => {
     // console.log(visibleColumns, 'visibleColumns');
@@ -140,7 +135,7 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
   }, [visibleColumns]);
 
   // 根据搜索条件和状态过滤用户数据
-  const filteredItems = useMemo(() => {
+  const items = useMemo(() => {
     let filteredUsers = [...dataSource];
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter(user => {
@@ -151,16 +146,25 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
     if (statusFilter instanceof Set && statusFilter.size > 0) {
       filteredUsers = filteredUsers.filter(user => statusFilter.has(user.status));
     }
-    return filteredUsers;
-  }, [filterValue, statusFilter]);
 
-  const pages = Math.ceil(filteredItems.length / rowsPerPage);
+    // 前端分页处理
+    if (!pageConfig?.service) {
+      const start = (page - 1) * (pageConfig?.pageSize || 50);
+      const end = start + (pageConfig?.pageSize || 50);
+      return filteredUsers.slice(start, end);
+    }
+
+    return filteredUsers;
+  }, [filterValue, statusFilter, dataSource, pageConfig, page]);
+
+  // const pages = Math.ceil(filteredItems.length / rowsPerPage);
   //
-  const items = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    return filteredItems.slice(start, end);
-  }, [page, filteredItems, rowsPerPage]);
+  // const items = useMemo(() => {
+  //   const start = (page - 1) * rowsPerPage;
+  //   const end = start + rowsPerPage;
+  //   console.log(filteredItems, 'filteredItems');
+  //   return filteredItems.slice(start, end);
+  // }, [page, filteredItems, rowsPerPage]);
 
   // 排序
   const sortedItems = useMemo(() => {
@@ -175,29 +179,44 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
   //渲染单元格内容
   const renderCell = useCallback((item: Item, columnKey: Key) => {
     const cellValue = item[columnKey];
-
     // 简化处理，直接返回单元格值
     return cellValue;
   }, []);
 
-  // 分页控制函数
-  const onNextPage = React.useCallback(() => {
-    if (page < pages) {
-      setPage(page + 1);
-    }
-  }, [page, pages]);
-
-  const onPreviousPage = React.useCallback(() => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  }, [page]);
-
   // 每页行数变化处理
-  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowsPerPage(Number(e.target.value));
-    setPage(1);
-  }, []);
+  // 特别是当函数作为props传递给子组件时。如果每次渲染都创建新函数，子组件会认为props变化，导致重新渲染，即使实际依赖没有变化。
+  const onRowsPerPageChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const newPageSize = Number(e.target.value);
+      setRowsPerPage(newPageSize);
+      setPage(1); // 重置内部页码状态
+      if (!pageConfig?.service) {
+        onPageChange(1, newPageSize); // 前端分页时也通知父组件页码重置
+      } else {
+        onPageChange(1, newPageSize); // 后端分页时通知父组件
+      }
+    },
+    [onPageChange, pageConfig]
+  );
+
+  // 分页变化
+  const onPagesChange = useCallback(
+    (page: number) => {
+      if (pageConfig?.service) {
+        onPageChange(page, rowsPerPage);
+      } else {
+        setPage(page); // 使用内部状态而不是修改 prop
+      }
+    },
+    [onPageChange, rowsPerPage, pageConfig]
+  );
+
+  // const onRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) =>{
+  //   setRowsPerPage(Number(e.target.value));
+  //   setPage(1);
+  //   console.log(9999)
+  //   changePage && changePage(page,rowsPerPage)
+  // }
 
   // 搜索处理函数
   const onSearchChange = useCallback((value: string) => {
@@ -215,6 +234,13 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
     setPage(1);
   }, []);
 
+  const totalItems = useMemo(() => {
+    if (pageConfig?.service) {
+      return pageConfig?.total || 0;
+    }
+    return dataSource.length || 0;
+  }, [pageConfig, dataSource]);
+
   // 表格顶部内容
   const topContent = useMemo(() => {
     return (
@@ -229,8 +255,7 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
                 base: 'max-w-full',
                 mainWrapper: 'h-full',
                 input: 'text-small',
-                inputWrapper:
-                  'h-10 bg-default-100 dark:bg-default-50 border-0 hover:bg-default-200',
+                inputWrapper: 'h-10 bg-default-100 dark:bg-default-50 border-0 hover:bg-default-200',
                 clearButton: 'text-default-400 hover:text-default-600'
               }}
               placeholder="搜索股票代码或者名称..."
@@ -244,30 +269,6 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
             />
           )}
           <div className="flex gap-3">
-            {/* 状态栏配置 */}
-            {/* <Dropdown>
-              <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon className="h-4 w-4" />} variant="flat">
-                  Status
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                disallowEmptySelection
-                aria-label="Table Columns"
-                closeOnSelect={false}
-                selectedKeys={statusFilter}
-                selectionMode="multiple"
-                onSelectionChange={keys => {
-                  setStatusFilter(keys instanceof Set ? keys : new Set());
-                }}
-              >
-                {statusOptions.map(status => (
-                  <DropdownItem key={status.uid} className="capitalize">
-                    {capitalize(status.name)}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown> */}
             {/* 自定义列配置 */}
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
@@ -282,9 +283,7 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
                 onSelectionChange={keys => {
-                  const selectedKeys = Array.from(keys instanceof Set ? keys : new Set()).map(
-                    String
-                  );
+                  const selectedKeys = Array.from(keys instanceof Set ? keys : new Set()).map(String);
                   setVisibleColumns(selectedKeys);
                 }}
               >
@@ -303,59 +302,48 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
         </div>
         {/* 分页 */}
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {100} users</span>
+          <span className="text-default-400 text-small">总 {totalItems} 条</span>
           <label className="flex items-center text-default-400 text-small">
-            Rows per page:
+            每页
             <select
               className="bg-transparent outline-none text-default-400 text-small"
+              value={rowsPerPage}
               onChange={onRowsPerPageChange}
             >
-              <option value="5">50</option>
-              <option value="10">100</option>
-              <option value="15">200</option>
+              {pageConfig?.pageSizes?.map(size => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
             </select>
+            条
           </label>
         </div>
       </div>
     );
-  }, [
-    filterValue,
-    statusFilter,
-    visibleColumns,
-    onRowsPerPageChange,
-    onSearchChange,
-    hasSearchFilter
-  ]);
+  }, [filterValue, statusFilter, visibleColumns, onRowsPerPageChange, onSearchChange, hasSearchFilter, pageConfig]);
 
   // 表格底部内容
-  const bottomContent = React.useMemo(() => {
+  const bottomContent = useMemo(() => {
+    if (!pageConfig) return null;
+    const pages = Math.ceil((pageConfig.service ? pageConfig.total : dataSource.length) / pageConfig.pageSize);
     return (
       <div className="py-2 px-2 flex justify-between items-center">
         <span className="w-[30%] text-small text-default-400">
-          {selectedKeys instanceof Set
-            ? `${selectedKeys.size} of ${filteredItems.length} selected`
-            : 'All items selected'}
+          {selectedKeys instanceof Set ? `${selectedKeys.size} of ${pageConfig.total} selected` : 'All items selected'}
         </span>
         <Pagination
           isCompact
           showControls
           showShadow
           color="primary"
-          page={page}
+          page={pageConfig.current}
           total={pages}
-          onChange={setPage}
+          onChange={onPagesChange}
         />
-        {/* <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
-            Previous
-          </Button>
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
-            Next
-          </Button>
-        </div> */}
       </div>
     );
-  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+  }, [selectedKeys, pageConfig, onPagesChange]);
 
   const handleSelectionChange = (keys: Selection) => {
     setSelectedKeys(keys);
@@ -366,41 +354,55 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
   };
 
   return (
-    <Table
-      isHeaderSticky
-      aria-label="Example table with custom cells, pagination and sorting"
-      bottomContent={bottomContent}
-      bottomContentPlacement="outside"
-      classNames={{
-        wrapper: 'max-h-[500px]'
-      }}
-      selectedKeys={selectedKeys}
-      selectionMode="multiple"
-      sortDescriptor={sortDescriptor}
-      topContent={topContent}
-      topContentPlacement="outside"
-      onSelectionChange={keys => setSelectedKeys(keys)}
-      onSortChange={handleSortChange}
-    >
-      <TableHeader columns={headerColumns}>
-        {column => (
-          <TableColumn
-            key={column.prop}
-            align={column.prop === 'actions' ? 'center' : 'start'}
-            allowsSorting={column.sortable}
-          >
-            {column.label}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody emptyContent={'No data found'} items={sortedItems}>
-        {item => (
-          <TableRow key={item[rowKey]}>
-            {columnKey => <TableCell>{renderCell(item, columnKey as Key)}</TableCell>}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <>
+      {loading ? (
+        <div className="w-full">
+          {/* 骨架屏加载效果 */}
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-200 rounded mb-4"></div>
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="h-16 bg-gray-200 rounded mb-2"></div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <Table
+          isHeaderSticky
+          aria-label="Example table with custom cells, pagination and sorting"
+          bottomContent={bottomContent}
+          bottomContentPlacement="outside"
+          classNames={{
+            wrapper: 'max-h-[500px]'
+          }}
+          selectedKeys={selectedKeys}
+          selectionMode="multiple"
+          sortDescriptor={sortDescriptor}
+          topContent={topContent}
+          topContentPlacement="outside"
+          onSelectionChange={keys => setSelectedKeys(keys)}
+          onSortChange={handleSortChange}
+        >
+          <TableHeader columns={headerColumns}>
+            {column => (
+              <TableColumn
+                key={column.prop}
+                align={column.prop === 'actions' ? 'center' : 'start'}
+                allowsSorting={column.sortable}
+              >
+                {column.label}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody emptyContent={'No data found'} items={sortedItems}>
+            {item => (
+              <TableRow key={item[rowKey]}>
+                {columnKey => <TableCell>{renderCell(item, columnKey as Key)}</TableCell>}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      )}
+    </>
   );
 };
 
