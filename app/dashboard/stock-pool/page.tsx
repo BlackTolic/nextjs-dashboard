@@ -8,6 +8,7 @@ import SeniorTable from '@/app/ui/components/senior-table';
 import { getStocks, getAllStocks } from '@/app/lib/db/stock/stock-list';
 import { stockPoolColumns, StockInfo } from './constant';
 import { useSearchParams } from 'next/navigation';
+import { addSubscription, removeSubscription, getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -24,6 +25,7 @@ export default function Page() {
     pageSizes: [50, 100, 200],
     service: false
   });
+  const [subscribedStocks, setSubscribedStocks] = useState<string[]>([]);
 
   const handleOpenModal = (code: string, name: string) => {
     setSelectedStock({ code, name });
@@ -48,7 +50,7 @@ export default function Page() {
           circulatingMarketValue: item.circulating_market_value
         })) ?? [];
       setTableList(stockList);
-      console.log(stockList, 'stockList');
+      // console.log(stockList, 'stockList');
       // setPageConfig(prev => ({
       //   ...prev,
       //   total: Number(data.pagination.total),
@@ -68,6 +70,42 @@ export default function Page() {
     }));
     console.log(pageConfig, 'pageConfig');
   };
+
+  const handleSubscribe = async (record: StockInfo) => {
+    try {
+      const userId = '410544b2-4001-4271-9855-fec4b6a6442a'; // TODO: 从认证系统获取用户ID
+      const isSubscribed = subscribedStocks.includes(record.symbol);
+      const result = isSubscribed
+        ? await removeSubscription(userId, record.symbol)
+        : await addSubscription(userId, record.symbol);
+      console.log(result, 'result');
+      if (result.success) {
+        // 关键更新：创建新数组触发重新渲染
+        setSubscribedStocks(prev =>
+          isSubscribed ? prev.filter(code => code !== record.symbol) : [...prev, record.symbol]
+        );
+      }
+    } catch (error) {
+      console.error('订阅操作失败:', error);
+    }
+  };
+
+  // 在组件加载时获取用户订阅列表
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        // todo
+        const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
+        const subscriptions = await getUserSubscriptions(userId);
+        console.log(subscriptions, 'subscriptions');
+        setSubscribedStocks(subscriptions.map(sub => sub.stock_symbol));
+      } catch (error) {
+        console.error('获取订阅列表失败:', error);
+      }
+    };
+
+    fetchSubscriptions();
+  }, []);
 
   useEffect(() => {
     fetchData(currentPage);
@@ -97,6 +135,8 @@ export default function Page() {
             onRow={(record: StockInfo) => ({
               onClick: () => handleOpenModal(record.symbol, record.name)
             })}
+            subscribed={subscribedStocks}
+            onSubscribe={handleSubscribe}
           />
         </div>
       </div>
