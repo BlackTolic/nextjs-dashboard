@@ -17,7 +17,14 @@ import {
   User,
   Pagination
 } from '@heroui/react';
-import { PlusIcon, MagnifyingGlassIcon, ChevronDownIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+  EllipsisVerticalIcon,
+  StarIcon as StarOutline,
+  StarIcon as StarSolid
+} from '@heroicons/react/24/outline';
 import { statusOptions } from './constant';
 // import { StockInfo } from '@/app/dashboard/stock-pool/constant';
 import { capitalize } from '@/app/lib/utils';
@@ -43,17 +50,14 @@ interface IconProps {
 }
 
 // 状态颜色
-type StatusColor = 'success' | 'danger' | 'warning' | 'default' | 'primary' | 'secondary';
+// type StatusColor = 'success' | 'danger' | 'warning' | 'default' | 'primary' | 'secondary';
 
-// 定义状态颜色映射
-const statusColorMap: { [key: string]: StatusColor } = {
-  active: 'success',
-  paused: 'danger',
-  vacation: 'warning'
-};
-
-// 默认显示的列
-const INITIAL_VISIBLE_COLUMNS = ['name', 'role', 'status', 'actions'];
+// // 定义状态颜色映射
+// const statusColorMap: { [key: string]: StatusColor } = {
+//   active: 'success',
+//   paused: 'danger',
+//   vacation: 'warning'
+// };
 
 type Key = string | number;
 type Selection = 'all' | Set<Key>;
@@ -95,6 +99,8 @@ export interface SeniorTableProps<T> {
   pageConfig?: PageConfig;
   onPageChange: (page: number, pageSize: number) => void; // 分页变化回调
   loading?: boolean; // 添加 loading 属性
+  subscribed?: string[]; // 已订阅的股票代码列表
+  onSubscribe?: (record: T) => void; // 订阅/取消订阅的回调
 }
 
 const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
@@ -107,9 +113,11 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
     defaultVisibleColumns,
     pageConfig,
     onPageChange,
-    loading
+    loading,
+    subscribed = [], // 默认为空数组
+    onSubscribe
   } = props;
-
+  console.log(subscribed, 'subscribed');
   const [filterValue, setFilterValue] = useState('');
   // 选中的行
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
@@ -177,11 +185,57 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
   }, [sortDescriptor, items]);
 
   //渲染单元格内容
-  const renderCell = useCallback((item: Item, columnKey: Key) => {
-    const cellValue = item[columnKey];
-    // 简化处理，直接返回单元格值
-    return cellValue;
-  }, []);
+  const renderCell = useCallback(
+    (item: Item, columnKey: Key) => {
+      // console.log(item, columnKey, 'item');
+      if (columnKey === 'subscription') {
+        const isSubscribed = subscribed.includes(String(item.symbol));
+        console.log(subscribed, 'subscribed111');
+        return (
+          <span key={subscribed ? 'xx' : 'eee'}>
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                onSubscribe?.(item as T);
+              }}
+              className="hover:text-primary-500"
+            >
+              {isSubscribed ? <StarSolid className="h-5 w-5 text-yellow-400" /> : <StarOutline className="h-5 w-5" />}
+            </button>
+          </span>
+        );
+      }
+      return item[columnKey];
+    },
+    [subscribed, onSubscribe]
+  );
+
+  React.useEffect(() => {
+    console.log('Subscribed list updated:', subscribed);
+  }, [subscribed]);
+
+  // const renderCell = (item: Item, columnKey: Key) => {
+  //   // console.log(item, columnKey, 'item');
+  //   if (columnKey === 'subscription') {
+  //     const isSubscribed = subscribed.includes(String(item.symbol));
+  //     console.log(subscribed, 'subscribed111');
+  //     return (
+  //       <span key={subscribed ? 'xx' : 'eee'}>
+  //         <button
+  //           onClick={e => {
+  //             e.stopPropagation();
+  //             console.log(subscribed, 'subscribed222');
+  //             onSubscribe?.(item as T);
+  //           }}
+  //           className="hover:text-primary-500"
+  //         >
+  //           {isSubscribed ? <StarSolid className="h-5 w-5 text-yellow-400" /> : <StarOutline className="h-5 w-5" />}
+  //         </button>
+  //       </span>
+  //     );
+  //   }
+  //   return item[columnKey];
+  // };
 
   // 每页行数变化处理
   // 特别是当函数作为props传递给子组件时。如果每次渲染都创建新函数，子组件会认为props变化，导致重新渲染，即使实际依赖没有变化。
@@ -375,14 +429,14 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
             wrapper: 'max-h-[500px]'
           }}
           selectedKeys={selectedKeys}
-          selectionMode="multiple"
           sortDescriptor={sortDescriptor}
           topContent={topContent}
           topContentPlacement="outside"
           onSelectionChange={keys => setSelectedKeys(keys)}
           onSortChange={handleSortChange}
         >
-          <TableHeader columns={headerColumns}>
+          {/* selectionMode="multiple" */}
+          <TableHeader columns={[{ prop: 'subscription', label: '我的订阅', sortable: false }, ...headerColumns]}>
             {column => (
               <TableColumn
                 key={column.prop}
@@ -402,6 +456,7 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
           </TableBody>
         </Table>
       )}
+      {JSON.stringify(subscribed, null, 2)}
     </>
   );
 };

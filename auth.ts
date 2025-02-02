@@ -39,7 +39,6 @@ export const { auth, signIn, signOut } = NextAuth({
           const { email, password } = parsedCredentials.data;
           // 数据库中的用户信息 {id,name,email,password:hash加密}
           const user = await getUser(email);
-          console.log(user, 'user99');
           if (!user) return null;
           // todo 使用bcrypt比对密码
           const passwordsMatch = await bcrypt.compare(password, user.password);
@@ -47,7 +46,7 @@ export const { auth, signIn, signOut } = NextAuth({
         }
         console.log('Invalid credentials');
         return null;
-      },
-    }),
-  ],
+      }
+    })
+  ]
 });

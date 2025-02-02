@@ -1,8 +1,8 @@
-import type { NextAuthConfig } from "next-auth";
+import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   pages: {
-    signIn: "/login",
+    signIn: '/login'
   },
   callbacks: {
     // 成功：auth {
@@ -13,16 +13,16 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       // console.log(nextUrl, "99999");
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       // 前往dashboard页面
       if (isOnDashboard) {
         return isLoggedIn;
         // Redirect unauthenticated users to login page
       } else if (isLoggedIn) {
-        return Response.redirect(new URL("/dashboard", nextUrl));
+        // return Response.redirect(new URL('/dashboard', nextUrl));
       }
       return true;
-    },
+    }
   },
-  providers: [], // Add providers with an empty array for now
+  providers: [] // Add providers with an empty array for now
 } satisfies NextAuthConfig;
