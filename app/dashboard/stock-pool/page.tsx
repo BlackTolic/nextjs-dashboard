@@ -68,23 +68,22 @@ export default function Page() {
       ...prev,
       pageSize
     }));
-    console.log(pageConfig, 'pageConfig');
   };
 
   const handleSubscribe = async (record: StockInfo) => {
     try {
-      const userId = '410544b2-4001-4271-9855-fec4b6a6442a'; // TODO: 从认证系统获取用户ID
+      const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
       const isSubscribed = subscribedStocks.includes(record.symbol);
       const result = isSubscribed
         ? await removeSubscription(userId, record.symbol)
         : await addSubscription(userId, record.symbol);
-      console.log(result, 'result');
       if (result.success) {
-        // 关键更新：创建新数组触发重新渲染
-        setSubscribedStocks(prev =>
-          isSubscribed ? prev.filter(code => code !== record.symbol) : [...prev, record.symbol]
-        );
+        const newSubscribed = isSubscribed
+          ? subscribedStocks.filter(code => code !== record.symbol)
+          : [...subscribedStocks, record.symbol];
+        setSubscribedStocks(newSubscribed);
       }
+      // setTableList(JSON.parse(JSON.stringify(tableList)));
     } catch (error) {
       console.error('订阅操作失败:', error);
     }
@@ -97,7 +96,6 @@ export default function Page() {
         // todo
         const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
         const subscriptions = await getUserSubscriptions(userId);
-        console.log(subscriptions, 'subscriptions');
         setSubscribedStocks(subscriptions.map(sub => sub.stock_symbol));
       } catch (error) {
         console.error('获取订阅列表失败:', error);

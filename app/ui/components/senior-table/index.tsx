@@ -28,7 +28,7 @@ import {
 import { statusOptions } from './constant';
 // import { StockInfo } from '@/app/dashboard/stock-pool/constant';
 import { capitalize } from '@/app/lib/utils';
-
+import { cloneDeep } from 'lodash';
 // 定义用户接口
 interface User {
   id: number;
@@ -117,7 +117,6 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
     subscribed = [], // 默认为空数组
     onSubscribe
   } = props;
-  console.log(subscribed, 'subscribed');
   const [filterValue, setFilterValue] = useState('');
   // 选中的行
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
@@ -163,7 +162,7 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
     }
 
     return filteredUsers;
-  }, [filterValue, statusFilter, dataSource, pageConfig, page]);
+  }, [filterValue, statusFilter, dataSource, pageConfig, page, subscribed]);
 
   // const pages = Math.ceil(filteredItems.length / rowsPerPage);
   //
@@ -176,66 +175,37 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
 
   // 排序
   const sortedItems = useMemo(() => {
-    return [...items].sort((a: Item, b: Item) => {
+    return [...cloneDeep(items)].sort((a: Item, b: Item) => {
       const first = a[sortDescriptor.column];
       const second = b[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
       return sortDescriptor.direction === 'descending' ? -cmp : cmp;
     });
-  }, [sortDescriptor, items]);
+  }, [sortDescriptor, items, subscribed]);
 
-  //渲染单元格内容
-  const renderCell = useCallback(
-    (item: Item, columnKey: Key) => {
-      // console.log(item, columnKey, 'item');
-      if (columnKey === 'subscription') {
-        const isSubscribed = subscribed.includes(String(item.symbol));
-        console.log(subscribed, 'subscribed111');
-        return (
-          <span key={subscribed ? 'xx' : 'eee'}>
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onSubscribe?.(item as T);
-              }}
-              className="hover:text-primary-500"
-            >
-              {isSubscribed ? <StarSolid className="h-5 w-5 text-yellow-400" /> : <StarOutline className="h-5 w-5" />}
-            </button>
-          </span>
-        );
-      }
-      return item[columnKey];
-    },
-    [subscribed, onSubscribe]
-  );
+  // 在组件顶部添加一个内部状态用于强制更新
+  const [updateKey, setUpdateKey] = useState(0);
 
-  React.useEffect(() => {
-    console.log('Subscribed list updated:', subscribed);
-  }, [subscribed]);
-
-  // const renderCell = (item: Item, columnKey: Key) => {
-  //   // console.log(item, columnKey, 'item');
-  //   if (columnKey === 'subscription') {
-  //     const isSubscribed = subscribed.includes(String(item.symbol));
-  //     console.log(subscribed, 'subscribed111');
-  //     return (
-  //       <span key={subscribed ? 'xx' : 'eee'}>
-  //         <button
-  //           onClick={e => {
-  //             e.stopPropagation();
-  //             console.log(subscribed, 'subscribed222');
-  //             onSubscribe?.(item as T);
-  //           }}
-  //           className="hover:text-primary-500"
-  //         >
-  //           {isSubscribed ? <StarSolid className="h-5 w-5 text-yellow-400" /> : <StarOutline className="h-5 w-5" />}
-  //         </button>
-  //       </span>
-  //     );
-  //   }
-  //   return item[columnKey];
-  // };
+  // 修改 renderCell 函数，添加强制更新逻辑
+  const renderCell = (item: Item, columnKey: Key) => {
+    if (columnKey === 'subscription') {
+      const isSubscribed = subscribed.includes(String(item.symbol));
+      return (
+        <button
+          onClick={e => {
+            // e.stopPropagation();
+            onSubscribe?.(item as T);
+            // 强制更新
+            // setUpdateKey(prev => prev + 1);
+          }}
+          className="hover:text-primary-500"
+        >
+          {isSubscribed ? <StarSolid className="h-5 w-5 text-yellow-400" /> : <StarOutline className="h-5 w-5" />}
+        </button>
+      );
+    }
+    return item[columnKey];
+  };
 
   // 每页行数变化处理
   // 特别是当函数作为props传递给子组件时。如果每次渲染都创建新函数，子组件会认为props变化，导致重新渲染，即使实际依赖没有变化。
@@ -447,16 +417,20 @@ const SeniorTable = <T extends Item>(props: SeniorTableProps<T>) => {
               </TableColumn>
             )}
           </TableHeader>
+          {/* 只有sortedItems发生变化，下列渲染才重新更新 */}
           <TableBody emptyContent={'No data found'} items={sortedItems}>
-            {item => (
-              <TableRow key={item[rowKey]}>
-                {columnKey => <TableCell>{renderCell(item, columnKey as Key)}</TableCell>}
-              </TableRow>
-            )}
+            {item => {
+              return (
+                <TableRow key={item[rowKey]}>
+                  {columnKey => (
+                    <TableCell key={columnKey + '' + subscribed.length}>{renderCell(item, columnKey as Key)}</TableCell>
+                  )}
+                </TableRow>
+              );
+            }}
           </TableBody>
         </Table>
       )}
-      {JSON.stringify(subscribed, null, 2)}
     </>
   );
 };
