@@ -9,8 +9,12 @@ import { updateStocksFromXueqiu } from '@/app/lib/db/stock/stock-list';
 import SeniorTable from '@/app/ui/components/senior-table';
 import dynamic from 'next/dynamic';
 import { pollXueqiuStocksList } from '@/app/crawler/stock-crawler';
+import { useEffect, useState } from 'react';
+import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 
 const Subscriptions = () => {
+  const [subscribedStocks, setSubscribedStocks] = useState<string[]>([]);
+
   const handleTest = async () => {
     try {
       const stocks = await pollXueqiuStocksList();
@@ -29,6 +33,22 @@ const Subscriptions = () => {
       console.error('轮询更新失败:', error);
     }
   };
+
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        // todo
+        const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
+        const subscriptions = await getUserSubscriptions(userId);
+        setSubscribedStocks(subscriptions.map(sub => sub.stock_symbol));
+        console.log(subscriptions, 'subscriptions');
+      } catch (error) {
+        console.error('获取订阅列表失败:', error);
+      }
+    };
+
+    fetchSubscriptions();
+  }, []);
 
   return (
     <div>
