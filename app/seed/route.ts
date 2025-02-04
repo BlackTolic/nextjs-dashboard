@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { db } from '@vercel/postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 import { readFileSync } from 'fs';
@@ -11,7 +11,7 @@ const client = await db.connect();
 async function seedUsers() {
   // 启用 UUID 扩展
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  
+
   // 创建用户表，包含 id、姓名、邮箱和密码字段
   await client.sql`
     CREATE TABLE IF NOT EXISTS users (
@@ -25,14 +25,14 @@ async function seedUsers() {
   // 并行插入所有用户数据
   // 对每个用户的密码进行哈希处理后存储
   const insertedUsers = await Promise.all(
-    users.map(async (user) => {
+    users.map(async user => {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       return client.sql`
         INSERT INTO users (id, name, email, password)
         VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
         ON CONFLICT (id) DO NOTHING;
       `;
-    }),
+    })
   );
 
   return insertedUsers;
@@ -56,12 +56,12 @@ async function seedInvoices() {
   // 并行插入所有发票数据
   const insertedInvoices = await Promise.all(
     invoices.map(
-      (invoice) => client.sql`
+      invoice => client.sql`
         INSERT INTO invoices (customer_id, amount, status, date)
         VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
         ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
+      `
+    )
   );
 
   return insertedInvoices;
@@ -84,12 +84,12 @@ async function seedCustomers() {
   // 并行插入所有客户数据
   const insertedCustomers = await Promise.all(
     customers.map(
-      (customer) => client.sql`
+      customer => client.sql`
         INSERT INTO customers (id, name, email, image_url)
         VALUES (${customer.id}, ${customer.name}, ${customer.email}, ${customer.image_url})
         ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
+      `
+    )
   );
 
   return insertedCustomers;
@@ -108,12 +108,12 @@ async function seedRevenue() {
   // 并行插入所有收入数据
   const insertedRevenue = await Promise.all(
     revenue.map(
-      (rev) => client.sql`
+      rev => client.sql`
         INSERT INTO revenue (month, revenue)
         VALUES (${rev.month}, ${rev.revenue})
         ON CONFLICT (month) DO NOTHING;
-      `,
-    ),
+      `
+    )
   );
 
   return insertedRevenue;
@@ -124,12 +124,10 @@ async function executeSchemaSql() {
   try {
     const schemaPath = join(process.cwd(), 'app/lib/db/stock/schema.sql');
     const schemaSql = readFileSync(schemaPath, 'utf8');
-    
+
     // 分割 SQL 语句（假设语句以分号结尾）
-    const statements = schemaSql
-      .split(';')
-      .filter(statement => statement.trim().length > 0);
-    
+    const statements = schemaSql.split(';').filter(statement => statement.trim().length > 0);
+
     // 执行每个 SQL 语句
     for (const statement of statements) {
       if (statement.trim()) {
@@ -137,7 +135,7 @@ async function executeSchemaSql() {
         await client.query(statement);
       }
     }
-    
+
     console.log('Schema SQL 执行成功');
   } catch (error) {
     console.error('执行 Schema SQL 时出错:', error);
@@ -149,16 +147,16 @@ async function executeSchemaSql() {
 export async function GET() {
   try {
     await client.sql`BEGIN`;
-    
+
     // 首先执行 schema.sql
     await executeSchemaSql();
-    
+
     // 然后执行其他数据填充操作
     await seedUsers();
     await seedCustomers();
     await seedInvoices();
     await seedRevenue();
-    
+
     await client.sql`COMMIT`;
 
     return Response.json({ message: '数据库初始化和填充成功' });

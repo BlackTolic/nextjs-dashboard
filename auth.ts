@@ -9,7 +9,7 @@ import { authConfig } from './auth.config';
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import type { User } from '@/app/lib/definitions';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // 获取数据库中的用户信息
 async function getUser(email: string): Promise<User | undefined> {
@@ -42,6 +42,7 @@ export const { auth, signIn, signOut } = NextAuth({
           if (!user) return null;
           // todo 使用bcrypt比对密码
           const passwordsMatch = await bcrypt.compare(password, user.password);
+          console.log(passwordsMatch, 'passwordsMatch');
           if (passwordsMatch) return user;
         }
         console.log('Invalid credentials');
