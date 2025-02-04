@@ -1,6 +1,7 @@
 'use client';
 import { Subscription } from './constant';
 import { Card, CardBody, CardHeader, CardFooter, Input, Checkbox, Divider } from '@heroui/react';
+import { useRouter } from 'next/navigation';
 
 // 定义组件的属性接口
 interface SubscriptionCardProps {
@@ -14,6 +15,19 @@ interface SubscriptionCardProps {
 
 // 订阅卡片组件
 const SubscriptionCard = ({ subscription, onOptionsChange, onValueChange }: SubscriptionCardProps) => {
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    console.log(999);
+
+    router.push(`/dashboard/subscriptions/${subscription.id}/edit`);
+  };
+
+  // 处理输入事件，阻止冒泡
+  const handleInputClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   // 处理选项变更的函数
   const handleOptionChange = (optionKey: keyof Subscription['selectedOptions']) => {
     if (onOptionsChange) {
@@ -35,68 +49,70 @@ const SubscriptionCard = ({ subscription, onOptionsChange, onValueChange }: Subs
   };
 
   return (
-    <Card className="w-72">
-      <CardHeader className="pb-0 pt-4 px-4 flex-col items-start">
-        <h3 className="text-xl font-semibold">{subscription.title}</h3>
-        <p className="text-small text-default-500">{subscription.description}</p>
-      </CardHeader>
-      <Divider />
-      <CardBody className="py-4">
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              isSelected={subscription.selectedOptions.showMaxValue}
-              onValueChange={() => handleOptionChange('showMaxValue')}
-            />
-            <span className="text-sm text-default-600 flex items-center gap-2">
-              最大值:
-              <Input
-                type="number"
-                value={String(subscription.maxValue)}
-                onChange={e => handleValueChange('maxValue', e)}
-                className="w-24"
-                size="sm"
-                isDisabled={!subscription.selectedOptions.showMaxValue}
+    <div onClick={handleCardClick} className="cursor-pointer">
+      <Card className="w-72 hover:shadow-md transition-shadow">
+        <CardHeader className="pb-0 pt-4 px-4 flex-col items-start">
+          <h3 className="text-xl font-semibold">{subscription.title}</h3>
+          <p className="text-small text-default-500">{subscription.description}</p>
+        </CardHeader>
+        <Divider />
+        <CardBody className="py-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                isSelected={subscription.selectedOptions.showMaxValue}
+                onValueChange={() => handleOptionChange('showMaxValue')}
               />
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Checkbox
-              isSelected={subscription.selectedOptions.showMinValue}
-              onValueChange={() => handleOptionChange('showMinValue')}
-            />
-            <span className="text-sm text-default-600 flex items-center gap-2">
-              最小值:
-              <Input
-                type="number"
-                value={String(subscription.minValue)}
-                onChange={e => handleValueChange('minValue', e)}
-                className="w-24"
-                size="sm"
-                isDisabled={!subscription.selectedOptions.showMinValue}
-              />
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Checkbox
-              isSelected={subscription.selectedOptions.showChart}
-              onValueChange={() => handleOptionChange('showChart')}
-            />
-            <span className="text-sm text-default-600">显示图表</span>
-          </div>
-
-          {subscription.selectedOptions.showChart && subscription.chartData && (
-            <div className="h-32 mt-4 bg-default-100 rounded-md">
-              <div className="text-sm text-default-400 text-center h-full flex items-center justify-center">
-                图表区域
-              </div>
+              <span className="text-sm text-default-600 flex items-center gap-2">
+                最大值:
+                <Input
+                  type="number"
+                  value={String(subscription.maxValue)}
+                  onChange={e => handleValueChange('maxValue', e)}
+                  className="w-24"
+                  size="sm"
+                  isDisabled={!subscription.selectedOptions.showMaxValue}
+                />
+              </span>
             </div>
-          )}
-        </div>
-      </CardBody>
-    </Card>
+
+            <div className="flex items-center gap-3">
+              <Checkbox
+                isSelected={subscription.selectedOptions.showMinValue}
+                onValueChange={() => handleOptionChange('showMinValue')}
+              />
+              <span className="text-sm text-default-600 flex items-center gap-2">
+                最小值:
+                <Input
+                  type="number"
+                  value={String(subscription.minValue)}
+                  onChange={e => handleValueChange('minValue', e)}
+                  className="w-24"
+                  size="sm"
+                  isDisabled={!subscription.selectedOptions.showMinValue}
+                />
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Checkbox
+                isSelected={subscription.selectedOptions.showChart}
+                onValueChange={() => handleOptionChange('showChart')}
+              />
+              <span className="text-sm text-default-600">显示图表</span>
+            </div>
+
+            {subscription.selectedOptions.showChart && subscription.chartData && (
+              <div className="h-32 mt-4 bg-default-100 rounded-md">
+                <div className="text-sm text-default-400 text-center h-full flex items-center justify-center">
+                  图表区域
+                </div>
+              </div>
+            )}
+          </div>
+        </CardBody>
+      </Card>
+    </div>
   );
 };
 
