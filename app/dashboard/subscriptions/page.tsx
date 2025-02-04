@@ -8,7 +8,7 @@ import { Button } from '@/app/ui/button';
 import { updateStocksFromXueqiu } from '@/app/lib/db/stock/stock-list';
 import SeniorTable from '@/app/ui/components/senior-table';
 import dynamic from 'next/dynamic';
-import { pollXueqiuStocksList } from '@/app/crawler/stock-crawler';
+import { pollXueqiuStocksList, crawlXueqiuStocksList, batchGetStockKline } from '@/app/crawler/stock-crawler';
 import { useEffect, useState } from 'react';
 import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 
@@ -17,7 +17,7 @@ const Subscriptions = () => {
 
   const handleTest = async () => {
     try {
-      const stocks = await pollXueqiuStocksList();
+      const stocks = await crawlXueqiuStocksList();
       console.log('抓取到的股票数据:', stocks);
     } catch (error) {
       console.error('测试抓取失败:', error);
@@ -31,6 +31,15 @@ const Subscriptions = () => {
       console.log('轮询更新结果:', stocks);
     } catch (error) {
       console.error('轮询更新失败:', error);
+    }
+  };
+
+  const handleTestx = async () => {
+    try {
+      const stocks = await batchGetStockKline(['SZ000333', 'SH600000'], 'week', -199);
+      console.log('抓取到的股票数据:', stocks);
+    } catch (error) {
+      console.error('测试抓取失败:', error);
     }
   };
 
@@ -59,7 +68,10 @@ const Subscriptions = () => {
         </h1>
         <div className="flex gap-2">
           <Button className="flex items-center" onClick={handleTest}>
-            测试按钮
+            获取单页股票列表
+          </Button>
+          <Button className="flex items-center" onClick={handleTestx}>
+            批量获取多个股票的K线数据
           </Button>
           <Button className="flex items-center" onClick={handlePolling}>
             轮询更新
