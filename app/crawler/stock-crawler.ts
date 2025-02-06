@@ -59,7 +59,7 @@ interface XueqiuResponse {
  * K线数据接口
  * @interface KlineData
  */
-interface KlineData {
+export interface KlineData {
   timestamp: number; // 时间戳
   volume: number; // 成交量
   open: number; // 开盘价
@@ -83,13 +83,16 @@ interface KlineData {
   net_volume_cn: number; // 陆股通净买入
 }
 
+export type KlineDataTuple = Array<Array<number>>;
+
 /**
  * K线数据API响应接口
  */
 interface KlineResponse {
   data: {
-    item: KlineData[];
-    symbol: string;
+    item: KlineDataTuple;
+    // symbol: string;
+    column: string[];
   };
 }
 
@@ -192,7 +195,7 @@ class StockCrawler {
     period: 'day' | 'week' | 'month' | 'quarter' | 'year' = 'day',
     count: number = -284,
     type: 'before' | 'after' = 'before'
-  ): Promise<KlineData[]> {
+  ): Promise<KlineResponse['data']> {
     try {
       const begin = Date.now();
       const response = await axios.get<KlineResponse>('https://stock.xueqiu.com/v5/stock/chart/kline.json', {
@@ -209,14 +212,14 @@ class StockCrawler {
       });
 
       console.log(symbol, begin, period, type, count);
-      if (response.data?.data?.item) {
-        return response.data.data.item;
+      if (response.data?.data) {
+        return response.data.data;
       }
 
-      return [];
+      return { item: [], column: [] };
     } catch (error) {
       console.error(`获取${symbol}的K线数据失败:`, error);
-      return [];
+      return { item: [], column: [] };
     }
   }
 
@@ -231,9 +234,8 @@ class StockCrawler {
     symbols: string[],
     period: 'day' | 'week' | 'month' | 'quarter' | 'year' = 'day',
     count: number = -100
-  ): Promise<Record<string, KlineData[]>> {
-    const result: Record<string, KlineData[]> = {};
-
+  ): Promise<Record<string, any>> {
+    const result: Record<string, any> = {};
     for (const symbol of symbols) {
       try {
         // 添加延迟避免请求过快
@@ -241,13 +243,13 @@ class StockCrawler {
         console.log(`正在获取 ${symbol} 的K线数据...`);
 
         const klineData = await this.getKlineData(symbol, period, count);
-        console.log(klineData, 'klineData');
+        // console.log(klineData, 'klineData');
         result[symbol] = klineData;
 
-        console.log(`成功获取 ${symbol} 的K线数据，共 ${klineData.length} 条记录`);
+        console.log(`成功获取 ${symbol} 的K线数据，共 ${klineData.item.length} 条记录`);
       } catch (error) {
         console.error(`获取 ${symbol} 的K线数据失败:`, error);
-        result[symbol] = [];
+        result[symbol] = {};
       }
     }
 

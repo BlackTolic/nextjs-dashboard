@@ -8,12 +8,27 @@ import { Button } from '@/app/ui/button';
 import { updateStocksFromXueqiu } from '@/app/lib/db/stock/stock-list';
 import SeniorTable from '@/app/ui/components/senior-table';
 import dynamic from 'next/dynamic';
-import { pollXueqiuStocksList, crawlXueqiuStocksList, batchGetStockKline } from '@/app/crawler/stock-crawler';
+import {
+  pollXueqiuStocksList,
+  crawlXueqiuStocksList,
+  batchGetStockKline,
+  KlineData
+} from '@/app/crawler/stock-crawler';
 import { useEffect, useState } from 'react';
 import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
+import CandlestickChart from '@/app/ui/components/charts/candlestick-chart';
 
 const Subscriptions = () => {
   const [subscribedStocks, setSubscribedStocks] = useState<string[]>([]);
+  const [klineData, setKlineData] = useState<
+    Record<
+      string,
+      {
+        item: Array<Array<number>>; // 改为二维数组类型
+        column: string[];
+      }
+    >
+  >({});
 
   const handleTest = async () => {
     try {
@@ -36,7 +51,9 @@ const Subscriptions = () => {
 
   const handleTestx = async () => {
     try {
-      const stocks = await batchGetStockKline(['SZ000333', 'SH600000'], 'week', -199);
+      const stocks = await batchGetStockKline(['SZ000333'], 'week', -199);
+      setKlineData(stocks);
+      console.log(stocks, 'stocks');
       console.log('抓取到的股票数据:', stocks);
     } catch (error) {
       console.error('测试抓取失败:', error);
@@ -116,6 +133,16 @@ const Subscriptions = () => {
               }
             }}
           />
+        ))}
+      </div>
+
+      {/* 添加K线图展示 */}
+      <div className="mt-8">
+        {Object.entries(klineData).map(([symbol, data]) => (
+          <div key={symbol} className="mb-8">
+            <CandlestickChart data={data.item} symbol={symbol} column={data.column} />
+            {/* column={data.column} */}
+          </div>
         ))}
       </div>
     </div>
