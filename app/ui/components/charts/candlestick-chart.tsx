@@ -5,11 +5,12 @@ import { batchGetStockKline, KlineDataTuple } from '@/app/crawler/stock-crawler'
 
 interface CandlestickChartProps {
   symbol: string; // 股票代码
+  title?: string; // 添加可选的 title 属性
 }
 
 type KlinePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
-const CandlestickChart = ({ symbol }: CandlestickChartProps) => {
+const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => {
   const [options, setOptions] = useState({});
   const [period, setPeriod] = useState<KlinePeriod>('day');
   const [data, setData] = useState<KlineDataTuple>([]);
@@ -105,7 +106,7 @@ const CandlestickChart = ({ symbol }: CandlestickChartProps) => {
 
     const option = {
       title: {
-        text: `${symbol} K线图`,
+        text: `${title} K线图`,
         left: 'center'
       },
       tooltip: {
