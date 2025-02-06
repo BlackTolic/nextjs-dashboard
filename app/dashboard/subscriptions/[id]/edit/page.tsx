@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { lusitana } from '@/app/ui/fonts';
 import { PencilIcon } from '@heroicons/react/24/outline';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
+import CandlestickChart from '@/app/ui/components/charts/candlestick-chart';
 
 export default function EditSubscriptionPage() {
   const { id } = useParams();
@@ -25,6 +26,11 @@ export default function EditSubscriptionPage() {
           {/* 编辑表单内容 */}
           <p>编辑订阅 ID: {id}</p>
           {/* 这里添加编辑表单的具体实现 */}
+
+          {/* K线图展示 */}
+          <div className="mt-8">
+            <CandlestickChart symbol="SZ000333" />
+          </div>
         </div>
       </div>
     </div>

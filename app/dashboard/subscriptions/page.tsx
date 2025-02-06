@@ -18,17 +18,13 @@ import { useEffect, useState } from 'react';
 import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 import CandlestickChart from '@/app/ui/components/charts/candlestick-chart';
 
+// 添加周期类型
+type KlinePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year';
+
 const Subscriptions = () => {
   const [subscribedStocks, setSubscribedStocks] = useState<string[]>([]);
-  const [klineData, setKlineData] = useState<
-    Record<
-      string,
-      {
-        item: Array<Array<number>>; // 改为二维数组类型
-        column: string[];
-      }
-    >
-  >({});
+  const [klineData, setKlineData] = useState<Record<string, { item: Array<Array<number>>; column: string[] }>>({});
+  const [period, setPeriod] = useState<KlinePeriod>('day');
 
   const handleTest = async () => {
     try {
@@ -51,10 +47,8 @@ const Subscriptions = () => {
 
   const handleTestx = async () => {
     try {
-      const stocks = await batchGetStockKline(['SZ000333'], 'week', -199);
+      const stocks = await batchGetStockKline(['SZ000333'], period, -199);
       setKlineData(stocks);
-      console.log(stocks, 'stocks');
-      console.log('抓取到的股票数据:', stocks);
     } catch (error) {
       console.error('测试抓取失败:', error);
     }
@@ -87,9 +81,22 @@ const Subscriptions = () => {
           <Button className="flex items-center" onClick={handleTest}>
             获取单页股票列表
           </Button>
-          <Button className="flex items-center" onClick={handleTestx}>
-            批量获取多个股票的K线数据
-          </Button>
+          <div className="flex gap-2 items-center mb-4">
+            {/* <select
+              value={period}
+              onChange={e => setPeriod(e.target.value as KlinePeriod)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="day">日K</option>
+              <option value="week">周K</option>
+              <option value="month">月K</option>
+              <option value="quarter">季K</option>
+              <option value="year">年K</option>
+            </select> */}
+            <Button className="flex items-center" onClick={handleTestx}>
+              获取K线数据
+            </Button>
+          </div>
           <Button className="flex items-center" onClick={handlePolling}>
             轮询更新
           </Button>
@@ -133,16 +140,6 @@ const Subscriptions = () => {
               }
             }}
           />
-        ))}
-      </div>
-
-      {/* 添加K线图展示 */}
-      <div className="mt-8">
-        {Object.entries(klineData).map(([symbol, data]) => (
-          <div key={symbol} className="mb-8">
-            <CandlestickChart data={data.item} symbol={symbol} column={data.column} />
-            {/* column={data.column} */}
-          </div>
         ))}
       </div>
     </div>
