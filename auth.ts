@@ -35,6 +35,7 @@ export const { auth, signIn, signOut } = NextAuth({
           .object({ email: z.string().email(), password: z.string().min(6) })
           .safeParse(credentials);
         // 输入格式正确
+        console.log(parsedCredentials, 'parsedCredentials');
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
           // 数据库中的用户信息 {id,name,email,password:hash加密}
