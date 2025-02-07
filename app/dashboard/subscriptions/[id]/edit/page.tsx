@@ -2,20 +2,15 @@
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import CandlestickChart from '@/app/ui/components/charts/candlestick-chart';
 
-interface ContextProps {
-  searchParams: {
-    title?: string;
-    [key: string]: string | string[] | undefined;
-  };
-  params: {
-    id?: string;
-  };
+interface EditSubscriptionPageProps {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ title: string }>;
 }
 
-export default async function EditSubscriptionPage(context: ContextProps) {
-  // 获取订阅ID（从服务端获取url参数必须用异步获取）
-  const { id = '' } = await Promise.resolve(context.params);
-  const { title = '' } = await Promise.resolve(context.searchParams);
+export default async function EditSubscriptionPage(props: EditSubscriptionPageProps) {
+  const params = props.params;
+  const id = (await params).id;
+  const title = (await props.searchParams).title;
 
   return (
     <div className="w-full">

@@ -36,14 +36,8 @@ async function handleSearch(formData: FormData) {
   redirect(`/dashboard/subscriptions?${params.toString()}`);
 }
 
-async function Subscriptions({
-  searchParams
-}: {
-  searchParams?: {
-    query?: string;
-  };
-}) {
-  const { query = '' } = await Promise.resolve(searchParams ?? {});
+async function Subscriptions(props: { searchParams: Promise<{ query: string }> }) {
+  const { query = '' } = await Promise.resolve(props.searchParams ?? {});
   const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
   const allSubscriptions = await getUserSubscriptions(userId);
 

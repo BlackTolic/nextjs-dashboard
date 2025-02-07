@@ -81,7 +81,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
 // 更新发票的服务器动作
-export async function updateInvoice(id: string, formData: FormData) {
+export async function updateInvoice(id: string, formData: FormData): Promise<void> {
   const { customerId, amount, status } = UpdateInvoice.parse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -90,27 +90,25 @@ export async function updateInvoice(id: string, formData: FormData) {
 
   const amountInCents = amount * 100;
   try {
-    // 更新数据库中的发票记录
     await sql`
-    UPDATE invoices
-    SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
-    WHERE id = ${id}
+      UPDATE invoices
+      SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+      WHERE id = ${id}
     `;
+    revalidatePath('/dashboard/invoices');
+    redirect('/dashboard/invoices');
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Invoice.' };
+    console.error('Failed to Update Invoice:', error);
   }
-  revalidatePath('/dashboard/invoices');
-  redirect('/dashboard/invoices');
 }
 
 // 删除发票的服务器动作
-export async function deleteInvoice(id: string) {
+export async function deleteInvoice(id: string, formData: FormData): Promise<void> {
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
     revalidatePath('/dashboard/invoices');
-    return { message: 'Deleted Invoice.' };
   } catch (error) {
-    return { message: 'Database Error: Failed to Delete Invoice.' };
+    console.error('Failed to Delete Invoice:', error);
   }
 }
 
