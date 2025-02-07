@@ -30,6 +30,7 @@ export const { auth, signIn, signOut } = NextAuth({
     Credentials({
       // credentials:{email,password,callbackUrl}
       async authorize(credentials) {
+        console.log(process.env.AUTH_SECRET, 'AUTH_SECRET');
         // 获取表单格式校验的验证信息
         const parsedCredentials = z
           .object({ email: z.string().email(), password: z.string().min(6) })
@@ -51,5 +52,6 @@ export const { auth, signIn, signOut } = NextAuth({
         return null;
       }
     })
-  ]
+  ],
+  secret: process.env.AUTH_SECRET
 });
