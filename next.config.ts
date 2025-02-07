@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 // 确保在配置文件开头加载环境变量
-const dotenv = require("dotenv").config({
-  path: `.env.${process.env.NODE_ENV}`,
+const dotenv = require('dotenv').config({
+  path: `.env.${process.env.NODE_ENV}`
 });
 // console.log(process.env,'99999')
 const nextConfig: NextConfig = {

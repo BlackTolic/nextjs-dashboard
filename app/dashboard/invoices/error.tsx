@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export default function Error({
   // This object is an instance of JavaScript's native Error object.
   error,
   // This is a function to reset the error boundary. When executed, the function will try to re-render the route segment.
-  reset,
+  reset
 }: {
   error: Error & { digest?: string };
   reset: () => void;

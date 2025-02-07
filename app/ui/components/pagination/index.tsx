@@ -17,7 +17,7 @@ export default function Pagination({
   currentPage,
   baseUrl,
   queryParams = {},
-  onPageChange,
+  onPageChange
 }: PaginationProps) {
   // 生成页码数组，显示当前页附近的页码
   const generatePageNumbers = () => {
@@ -25,7 +25,7 @@ export default function Pagination({
     const showPages = 5; // 显示的页码数量
 
     let start = Math.max(1, currentPage - Math.floor(showPages / 2));
-    let end = Math.min(totalPages, start + showPages - 1);
+    const end = Math.min(totalPages, start + showPages - 1);
 
     if (end - start + 1 < showPages) {
       start = Math.max(1, end - showPages + 1);
@@ -53,20 +53,20 @@ export default function Pagination({
         onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
         className={clsx('flex items-center justify-center px-3 py-2 border rounded-l-md', {
           'text-gray-300 cursor-not-allowed': currentPage <= 1,
-          'hover:bg-gray-50': currentPage > 1,
+          'hover:bg-gray-50': currentPage > 1
         })}
         aria-disabled={currentPage <= 1}
       >
         <ChevronLeftIcon className="w-5 h-5" />
       </button>
 
-      {pages.map((page) => (
+      {pages.map(page => (
         <button
           key={page}
           onClick={() => page !== currentPage && onPageChange(page)}
           className={clsx('flex items-center justify-center px-3 py-2 border-t border-b', {
             'bg-blue-50 text-blue-600 border-blue-600': page === currentPage,
-            'hover:bg-gray-50': page !== currentPage,
+            'hover:bg-gray-50': page !== currentPage
           })}
         >
           {page}
@@ -77,7 +77,7 @@ export default function Pagination({
         onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
         className={clsx('flex items-center justify-center px-3 py-2 border rounded-r-md', {
           'text-gray-300 cursor-not-allowed': currentPage >= totalPages,
-          'hover:bg-gray-50': currentPage < totalPages,
+          'hover:bg-gray-50': currentPage < totalPages
         })}
         aria-disabled={currentPage >= totalPages}
       >

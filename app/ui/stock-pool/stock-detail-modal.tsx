@@ -11,12 +11,7 @@ interface StockDetailModalProps {
   stockName: string;
 }
 
-export default function StockDetailModal({
-  isOpen,
-  onClose,
-  stockCode,
-  stockName,
-}: StockDetailModalProps) {
+export default function StockDetailModal({ isOpen, onClose, stockCode, stockName }: StockDetailModalProps) {
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>

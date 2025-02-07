@@ -21,7 +21,7 @@ export default function StockTable(props: StockTableProps) {
     tableList,
     subscribedStocks = [],
     onToggleSubscribe,
-    setOptimisticSubscribed,
+    setOptimisticSubscribed
   } = props;
 
   // 添加收藏按钮点击处理函数
@@ -37,7 +37,7 @@ export default function StockTable(props: StockTableProps) {
       if (setOptimisticSubscribed) {
         const isCurrentlySubscribed = subscribedStocks.includes(code);
         const newSubscribedStocks = isCurrentlySubscribed
-          ? subscribedStocks.filter((stock) => stock !== code)
+          ? subscribedStocks.filter(stock => stock !== code)
           : [...subscribedStocks, code];
         setOptimisticSubscribed(newSubscribedStocks);
       }
@@ -63,10 +63,7 @@ export default function StockTable(props: StockTableProps) {
               </th>
             ))}
             {/* 操作列 */}
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               操作
             </th>
           </tr>
@@ -77,10 +74,7 @@ export default function StockTable(props: StockTableProps) {
             <tr key={item.symbol} className="hover:bg-gray-50 transition-colors duration-200">
               {/* 渲染每行数据 */}
               {stockPoolColumns.map((column: StockPoolColumn) => (
-                <td
-                  key={column.dataIndex}
-                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                >
+                <td key={column.dataIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {item[column.dataIndex]}
                 </td>
               ))}
@@ -95,7 +89,7 @@ export default function StockTable(props: StockTableProps) {
                 </button>
                 {/* 订阅/取消订阅按钮 */}
                 <button
-                  onClick={(e) => handleSubscribeClick(item.symbol, e)}
+                  onClick={e => handleSubscribeClick(item.symbol, e)}
                   className={clsx(
                     'transition-all duration-200 ease-in-out',
                     'hover:scale-110 active:scale-95',

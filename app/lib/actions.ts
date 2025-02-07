@@ -19,9 +19,9 @@ const FormSchema = z.object({
     .number() // coerce用于将输入值强制转换为数字类型
     .gt(0, { message: 'Please enter an amount greater than $0.' }),
   status: z.enum(['pending', 'paid'], {
-    invalid_type_error: 'Please select an invoice status.',
+    invalid_type_error: 'Please select an invoice status.'
   }),
-  date: z.string(),
+  date: z.string()
 });
 
 // 创建发票时使用的验证模式，省略id和date字段
@@ -43,14 +43,14 @@ export async function createInvoice(prevState: State, formData: FormData) {
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
-    status: formData.get('status'),
+    status: formData.get('status')
   });
 
   // 如果验证失败，返回错误信息
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to Create Invoice.',
+      message: 'Missing Fields. Failed to Create Invoice.'
     };
   }
 
@@ -67,7 +67,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
     `;
   } catch (error) {
     return {
-      message: 'Database Error: Failed to Create Invoice.',
+      message: 'Database Error: Failed to Create Invoice.'
     };
   }
 
@@ -85,7 +85,7 @@ export async function updateInvoice(id: string, formData: FormData) {
   const { customerId, amount, status } = UpdateInvoice.parse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
-    status: formData.get('status'),
+    status: formData.get('status')
   });
 
   const amountInCents = amount * 100;

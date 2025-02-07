@@ -5,7 +5,7 @@ import {
   InvoiceForm,
   InvoicesTable,
   LatestInvoiceRaw,
-  Revenue,
+  Revenue
 } from './definitions';
 import { formatCurrency } from './utils';
 
@@ -21,7 +21,7 @@ export async function fetchRevenue() {
 
     console.log('Fetching revenue data...');
     // todo为什么这里注释掉这句代码就报错
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     const data = await sql<Revenue>`SELECT * FROM revenue`;
     console.log('Data fetch completed after 3 seconds.');
@@ -48,9 +48,9 @@ export async function fetchLatestInvoices() {
       ORDER BY invoices.date DESC
       LIMIT 5`;
 
-    const latestInvoices = data.rows.map((invoice) => ({
+    const latestInvoices = data.rows.map(invoice => ({
       ...invoice,
-      amount: formatCurrency(invoice.amount),
+      amount: formatCurrency(invoice.amount)
     }));
     return latestInvoices;
   } catch (error) {
@@ -78,11 +78,7 @@ export async function fetchCardData() {
          SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
          FROM invoices`;
     // console.log(invoiceCountPromise,'invoiceCountPromise')
-    const data = await Promise.all([
-      invoiceCountPromise,
-      customerCountPromise,
-      invoiceStatusPromise,
-    ]);
+    const data = await Promise.all([invoiceCountPromise, customerCountPromise, invoiceStatusPromise]);
 
     const numberOfInvoices = Number(data[0].rows[0].count ?? '0');
     const numberOfCustomers = Number(data[1].rows[0].count ?? '0');
@@ -93,7 +89,7 @@ export async function fetchCardData() {
       numberOfCustomers,
       numberOfInvoices,
       totalPaidInvoices,
-      totalPendingInvoices,
+      totalPendingInvoices
     };
   } catch (error) {
     console.error('Database Error:', error);
@@ -183,10 +179,10 @@ export async function fetchInvoiceById(id: string) {
       WHERE invoices.id = ${id};
     `;
 
-    const invoice = data.rows.map((invoice) => ({
+    const invoice = data.rows.map(invoice => ({
       ...invoice,
       // Convert amount from cents to dollars
-      amount: invoice.amount / 100,
+      amount: invoice.amount / 100
     }));
     console.log(invoice); // Invoice is an empty array []
     return invoice[0];
@@ -243,10 +239,10 @@ export async function fetchFilteredCustomers(query: string) {
 		ORDER BY customers.name ASC
 	  `;
 
-    const customers = data.rows.map((customer) => ({
+    const customers = data.rows.map(customer => ({
       ...customer,
       total_pending: formatCurrency(customer.total_pending),
-      total_paid: formatCurrency(customer.total_paid),
+      total_paid: formatCurrency(customer.total_paid)
     }));
 
     return customers;

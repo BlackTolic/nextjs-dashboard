@@ -20,21 +20,21 @@ export const stockPoolColumns = [
   {
     prop: 'symbol',
     label: '股票代码',
-    sortable: true,
+    sortable: true
   },
   {
     prop: 'name',
     label: '股票名称',
-    sortable: true,
+    sortable: true
   },
   {
     prop: 'industry',
     label: '行业',
-    sortable: true,
+    sortable: true
   },
   {
     prop: 'total_market_value',
     label: '总市值',
-    sortable: true,
-  },
+    sortable: true
+  }
 ];
