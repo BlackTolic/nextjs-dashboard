@@ -5,7 +5,8 @@ import { Switch, Checkbox, Input } from '@heroui/react';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { saveSubscriptionSettings } from '@/app/lib/actions/subscription';
 import { useParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
+import { updateLoggerMessage } from '@/app/lib/init/scheduler';
 
 interface BollLine {
   enabled: boolean;
@@ -134,7 +135,13 @@ export default function SubscriptionSettings() {
     }));
   };
 
+  const switchSubmit = (checked: boolean) => {
+    console.log(checked, 'switchSubmit');
+    setSubscriptionForm(prev => ({ ...prev, isSubscribed: checked }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log(subscriptionForm, 'subscriptionForm');
     e.preventDefault();
     try {
       const subscriptionSettings = {
@@ -143,10 +150,12 @@ export default function SubscriptionSettings() {
         bollSettings: subscriptionForm.bollSettings,
         profitLossRatio: subscriptionForm.profitLossRatio
       };
-      console.log(subscriptionSettings, 'subscriptionSettings');
+
       const result = await saveSubscriptionSettings(subscriptionSettings);
+
       if (result.success) {
         toast.success('设置保存成功');
+        await updateLoggerMessage('模板已经更新');
       } else {
         toast.error(result.error || '保存失败');
       }
@@ -160,10 +169,7 @@ export default function SubscriptionSettings() {
       {/* 订阅开关 */}
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">开启订阅</label>
-        <Switch
-          checked={subscriptionForm.isSubscribed}
-          onChange={checked => setSubscriptionForm(prev => ({ ...prev, isSubscribed: checked }))}
-        />
+        <Switch checked={subscriptionForm.isSubscribed} onValueChange={switchSubmit} />
       </div>
 
       {/* BOLL 线设置标题 */}
@@ -205,7 +211,6 @@ export default function SubscriptionSettings() {
                       <span>偏移:</span>
                       <Input
                         type="number"
-                        value={subscriptionForm.bollSettings[period as Period].lines[line as Line].offset}
                         onChange={e =>
                           handleBollSettingChange(period as Period, 'offset', Number(e.target.value), line as Line)
                         }
@@ -236,7 +241,6 @@ export default function SubscriptionSettings() {
             <label className="w-24 text-sm font-medium">买入价格</label>
             <Input
               type="number"
-              value={subscriptionForm.profitLossRatio.buyPrice}
               onChange={e => handleProfitLossChange('buyPrice', Number(e.target.value))}
               className="w-32"
               min={0}
@@ -251,7 +255,6 @@ export default function SubscriptionSettings() {
             <div className="flex items-center gap-2">
               <Input
                 type="number"
-                value={subscriptionForm.profitLossRatio.ratio}
                 onChange={e => handleProfitLossChange('ratio', Number(e.target.value))}
                 className="w-20"
                 min={0.1}
