@@ -3,7 +3,6 @@ import type { NextConfig } from 'next';
 const dotenv = require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 });
-// console.log(process.env,'99999')
 const nextConfig: NextConfig = {
   /* config options here */
   // 开启Partial Prerendering
