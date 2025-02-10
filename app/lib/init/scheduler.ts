@@ -5,15 +5,18 @@ class TaskScheduler {
   private messageTemplate: string = '当前系统时间';
   private timer: ReturnType<typeof setInterval> | null = null;
   private interval: number = 5000;
+  private callback: () => void;
 
   // 私有构造函数，防止外部实例化
-  private constructor() {}
+  private constructor(callback: () => void) {
+    this.callback = callback;
+  }
 
   // 获取单例实例
-  public static getInstance(): TaskScheduler {
+  public static getInstance(callback: () => void): TaskScheduler {
     if (!TaskScheduler.instance) {
       console.log('TaskScheduler 实例化');
-      TaskScheduler.instance = new TaskScheduler();
+      TaskScheduler.instance = new TaskScheduler(callback);
     }
     return TaskScheduler.instance;
   }
@@ -35,19 +38,23 @@ class TaskScheduler {
     console.log(this.timer, 'stopTimeLogger2');
   }
 
-  public updateMessage(newMessage: string): void {
+  // 更新订阅信息
+  public updateDescriptMessage(newMessage: string): void {
     this.messageTemplate = newMessage;
+    // 更新后重启定时器
+    this.startTimeLogger(this.callback);
   }
 }
 
 // 导出实例方法
-export async function startTimeLogger() {
-  const scheduler = TaskScheduler.getInstance();
-  scheduler.startTimeLogger();
+export async function startTimeLogger(callback: () => void) {
+  const scheduler = TaskScheduler.getInstance(callback);
+  scheduler.startTimeLogger(callback);
 }
 
-export async function updateLoggerMessage(newMessage: string) {
-  const scheduler = TaskScheduler.getInstance();
-  scheduler.updateMessage(newMessage);
-  scheduler.startTimeLogger();
+//更新订阅信息
+export async function updateDescriptMessage(message = '', callback: () => void) {
+  const scheduler = TaskScheduler.getInstance(callback);
+  // 获取订阅信息
+  scheduler.updateDescriptMessage(message);
 }
