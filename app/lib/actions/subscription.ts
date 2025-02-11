@@ -3,30 +3,17 @@
 import { sql } from '@vercel/postgres';
 import { auth } from '@/auth';
 
-interface BollSettings {
-  daily: {
-    enabled: boolean;
-    lines: {
-      upper: { enabled: boolean; offset: number };
-      middle: { enabled: boolean; offset: number };
-      lower: { enabled: boolean; offset: number };
-    };
-  };
-  weekly: {
-    enabled: boolean;
-    lines: {
-      upper: { enabled: boolean; offset: number };
-      middle: { enabled: boolean; offset: number };
-      lower: { enabled: boolean; offset: number };
-    };
-  };
-  monthly: {
-    enabled: boolean;
-    lines: {
-      upper: { enabled: boolean; offset: number };
-      middle: { enabled: boolean; offset: number };
-      lower: { enabled: boolean; offset: number };
-    };
+// 订阅设置
+interface BollLine {
+  enabled: boolean;
+  offset: number;
+}
+
+interface BollPeriod {
+  lines: {
+    upper: BollLine;
+    middle: BollLine;
+    lower: BollLine;
   };
 }
 
@@ -34,30 +21,9 @@ interface SubscriptionSettings {
   stockSymbol: string;
   isSubscribed: boolean;
   bollSettings: {
-    daily: {
-      enabled: boolean;
-      lines: {
-        upper: { enabled: boolean; offset: number };
-        middle: { enabled: boolean; offset: number };
-        lower: { enabled: boolean; offset: number };
-      };
-    };
-    weekly: {
-      enabled: boolean;
-      lines: {
-        upper: { enabled: boolean; offset: number };
-        middle: { enabled: boolean; offset: number };
-        lower: { enabled: boolean; offset: number };
-      };
-    };
-    monthly: {
-      enabled: boolean;
-      lines: {
-        upper: { enabled: boolean; offset: number };
-        middle: { enabled: boolean; offset: number };
-        lower: { enabled: boolean; offset: number };
-      };
-    };
+    daily: BollPeriod;
+    weekly: BollPeriod;
+    monthly: BollPeriod;
   };
   profitLossRatio: {
     buyPrice: number;
@@ -65,6 +31,7 @@ interface SubscriptionSettings {
   };
 }
 
+// 保存订阅设置
 export async function saveSubscriptionSettings(settings: SubscriptionSettings) {
   try {
     // const session = await auth();
@@ -97,6 +64,7 @@ export async function saveSubscriptionSettings(settings: SubscriptionSettings) {
   }
 }
 
+// 获取订阅设置
 export async function getSubscriptionSettings(stockSymbol: string) {
   try {
     // const session = await auth();

@@ -1,5 +1,5 @@
 'use server';
-import nodemailer, { TransportOptions } from 'nodemailer';
+import nodemailer from 'nodemailer';
 
 const mail = {
   host: 'smtp.qq.com', // 主机
@@ -23,7 +23,7 @@ export interface MailOptions {
 const smtpTransport = nodemailer.createTransport(mail);
 
 // 发送邮件
-export const sendMail = (options: MailOptions) => {
+export const sendMail = async (options: MailOptions) => {
   return new Promise(resolve => {
     const mailOptions = {
       from: mail.auth.user,

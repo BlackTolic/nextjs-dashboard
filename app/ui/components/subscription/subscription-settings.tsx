@@ -6,7 +6,7 @@ import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { saveSubscriptionSettings } from '@/app/lib/actions/subscription';
 import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { updateLoggerMessage } from '@/app/lib/init/scheduler';
+import { updateDescriptMessage } from '@/app/lib/init/scheduler';
 
 interface BollLine {
   enabled: boolean;
@@ -14,7 +14,6 @@ interface BollLine {
 }
 
 interface BollPeriod {
-  enabled: boolean;
   lines: {
     upper: BollLine;
     middle: BollLine;
@@ -49,44 +48,36 @@ export default function SubscriptionSettings() {
     isSubscribed: false,
     bollSettings: {
       daily: {
-        enabled: false,
         lines: {
-          upper: { enabled: true, offset: 2 },
+          upper: { enabled: true, offset: 0 },
           middle: { enabled: true, offset: 0 },
-          lower: { enabled: true, offset: -2 }
+          lower: { enabled: true, offset: 0 }
         }
       },
       weekly: {
-        enabled: false,
         lines: {
-          upper: { enabled: true, offset: 2 },
+          upper: { enabled: true, offset: 0 },
           middle: { enabled: true, offset: 0 },
-          lower: { enabled: true, offset: -2 }
+          lower: { enabled: true, offset: 0 }
         }
       },
       monthly: {
-        enabled: false,
         lines: {
-          upper: { enabled: true, offset: 2 },
+          upper: { enabled: true, offset: 0 },
           middle: { enabled: true, offset: 0 },
-          lower: { enabled: true, offset: -2 }
+          lower: { enabled: true, offset: 0 }
         }
       }
     },
     profitLossRatio: {
       buyPrice: 0,
-      ratio: 2.0 // 默认盈亏比 2:1
+      ratio: 2.0
     }
   });
 
   const [expandedPeriods, setExpandedPeriods] = useState<Period[]>([]);
 
-  const handleBollSettingChange = (
-    period: 'daily' | 'weekly' | 'monthly',
-    field: string,
-    value: any,
-    lineType?: 'upper' | 'middle' | 'lower'
-  ) => {
+  const handleBollSettingChange = (period: Period, field: string, value: any, lineType?: Line) => {
     setSubscriptionForm(prev => {
       if (lineType) {
         return {
@@ -106,16 +97,7 @@ export default function SubscriptionSettings() {
           }
         };
       }
-      return {
-        ...prev,
-        bollSettings: {
-          ...prev.bollSettings,
-          [period]: {
-            ...prev.bollSettings[period],
-            [field]: value
-          }
-        }
-      };
+      return prev;
     });
   };
 
@@ -150,12 +132,12 @@ export default function SubscriptionSettings() {
         bollSettings: subscriptionForm.bollSettings,
         profitLossRatio: subscriptionForm.profitLossRatio
       };
-
+      console.log(subscriptionSettings, 'subscriptionSettings');
       const result = await saveSubscriptionSettings(subscriptionSettings);
 
       if (result.success) {
+        // await updateDescriptMessage('模板已经更新');
         toast.success('设置保存成功');
-        await updateLoggerMessage('模板已经更新');
       } else {
         toast.error(result.error || '保存失败');
       }
@@ -215,11 +197,7 @@ export default function SubscriptionSettings() {
                           handleBollSettingChange(period as Period, 'offset', Number(e.target.value), line as Line)
                         }
                         className="w-20"
-                        min={-10}
-                        max={10}
-                        step={0.1}
                       />
-                      <span>σ</span>
                     </div>
                   )}
                 </div>
