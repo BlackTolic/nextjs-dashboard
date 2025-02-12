@@ -45,7 +45,6 @@ export async function saveSubscriptionSettings(settings: SubscriptionSettings) {
 
     const { stockSymbol, ...settingsData } = settings;
     const settingsJson = JSON.stringify(settingsData);
-    console.log(settingsJson, 'settingsJson');
     await sql`
       INSERT INTO subscriptions (user_id, stock_symbol, settings, updated_at)
       VALUES (${session.user.id}, ${stockSymbol}, ${settingsJson}::jsonb, NOW())
@@ -93,7 +92,6 @@ export async function getSubscriptionSettings(stockSymbol: string) {
   }
 }
 
-// 获取所有订阅设置
 /**
  * 获取所有用户的订阅设置
  */
@@ -108,12 +106,11 @@ export async function getAllSubscriptionSettings() {
         updated_at
       FROM subscriptions
     `;
-
     // 格式化返回结果
     return result.rows.map(row => ({
       userId: row.user_id,
       stockSymbol: row.stock_symbol,
-      settings: JSON.parse(row.settings),
+      settings: row.settings,
       updatedAt: row.updated_at
     }));
   } catch (error) {

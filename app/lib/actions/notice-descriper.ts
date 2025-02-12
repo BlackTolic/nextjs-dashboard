@@ -66,42 +66,53 @@ function generateEmailContent(
 }
 
 // 发送通知给所有订阅者
-export async function sendNotificationsToAllSubscribers(stockSymbol: string, currentPrice: number) {
+export async function sendNotificationsToAllSubscribers() {
   try {
     // 1. 获取所有订阅设置
-    const allSettings = await getAllSubscriptionSettings();
+    const descriptionInfoList = await getAllSubscriptionSettings();
+    // const { userId = '', stockSymbol = '', settings = {} } = descriptionInfoList[0];
+    // console.log('allSettings', userId, stockSymbol, settings);
+    descriptionInfoList.forEach(item => {
+      const { userId = '', stockSymbol = '', settings = {} } = item;
+      const { bollSettings = {} } = settings;
+      const { daily = {}, weekly = {}, monthly = {} } = bollSettings;
+      console.log('daily', daily);
+      console.log('weekly', weekly);
+      console.log('monthly', monthly);
+    });
 
     // 2. 获取股票基本信息
-    const stockRes = await sql`
-      SELECT * FROM stocks 
-      WHERE symbol = ${stockSymbol}
-      LIMIT 1
-    `;
-    const stockData = stockRes.rows[0] as StockData;
+    // 2. 获取股票基本信息
+    // const stockRes = await sql`
+    //   SELECT * FROM stocks
+    //   WHERE symbol = ${stockSymbol}
+    //   LIMIT 1
+    // `;
+    // const stockData = stockRes.rows[0] as StockData;
 
-    // 3. 遍历所有订阅者并发送邮件
-    for (const setting of allSettings) {
-      if (setting.stockSymbol === stockSymbol) {
-        // 获取用户邮箱
-        const userRes = await sql`
-          SELECT email FROM users 
-          WHERE id = ${setting.userId}
-        `;
-        const userEmail = userRes.rows[0]?.email;
+    // // 3. 遍历所有订阅者并发送邮件
+    // for (const setting of allSettings) {
+    //   if (setting.stockSymbol === stockSymbol) {
+    //     // 获取用户邮箱
+    //     const userRes = await sql`
+    //       SELECT email FROM users
+    //       WHERE id = ${setting.userId}
+    //     `;
+    //     const userEmail = userRes.rows[0]?.email;
 
-        if (userEmail) {
-          // 生成邮件内容
-          const { subject, html } = generateEmailContent(stockData, setting.settings, currentPrice);
+    //     if (userEmail) {
+    //       // 生成邮件内容
+    //       const { subject, html } = generateEmailContent(stockData, setting.settings, currentPrice);
 
-          // 发送邮件
-          await postMail({
-            to: userEmail,
-            subject,
-            html
-          });
-        }
-      }
-    }
+    //       // 发送邮件
+    //       await postMail({
+    //         to: userEmail,
+    //         subject,
+    //         html
+    //       });
+    //     }
+    //   }
+    // }
 
     return { success: true, count: allSettings.length };
   } catch (error) {

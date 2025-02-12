@@ -7,6 +7,7 @@ import { saveSubscriptionSettings } from '@/app/lib/actions/subscription';
 import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { updateDescriptMessage } from '@/app/lib/init/scheduler';
+import { sendNotificationsToAllSubscribers } from '@/app/lib/actions/notice-descriper';
 
 interface BollLine {
   enabled: boolean;
@@ -129,6 +130,7 @@ export default function SubscriptionSettings() {
       } else {
         toast.error(result.error || '保存失败');
       }
+      await sendNotificationsToAllSubscribers();
     } catch (error) {
       toast.error('保存失败，请重试');
     }
