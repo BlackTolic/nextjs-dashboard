@@ -10,11 +10,9 @@ interface BollLine {
 }
 
 interface BollPeriod {
-  lines: {
-    upper: BollLine;
-    middle: BollLine;
-    lower: BollLine;
-  };
+  upper: BollLine;
+  middle: BollLine;
+  lower: BollLine;
 }
 
 interface SubscriptionSettings {
@@ -92,5 +90,34 @@ export async function getSubscriptionSettings(stockSymbol: string) {
   } catch (error) {
     console.error('获取订阅设置失败:', error);
     throw error;
+  }
+}
+
+// 获取所有订阅设置
+/**
+ * 获取所有用户的订阅设置
+ */
+export async function getAllSubscriptionSettings() {
+  try {
+    // 查询数据库获取所有订阅记录
+    const result = await sql`
+      SELECT 
+        user_id, 
+        stock_symbol,
+        settings,
+        updated_at
+      FROM subscriptions
+    `;
+
+    // 格式化返回结果
+    return result.rows.map(row => ({
+      userId: row.user_id,
+      stockSymbol: row.stock_symbol,
+      settings: JSON.parse(row.settings),
+      updatedAt: row.updated_at
+    }));
+  } catch (error) {
+    console.error('获取全部订阅设置失败:', error);
+    throw new Error('获取订阅数据时发生错误');
   }
 }
