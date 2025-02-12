@@ -14,11 +14,9 @@ interface BollLine {
 }
 
 interface BollPeriod {
-  lines: {
-    upper: BollLine;
-    middle: BollLine;
-    lower: BollLine;
-  };
+  upper: BollLine;
+  middle: BollLine;
+  lower: BollLine;
 }
 
 interface SubscriptionForm {
@@ -48,25 +46,19 @@ export default function SubscriptionSettings() {
     isSubscribed: false,
     bollSettings: {
       daily: {
-        lines: {
-          upper: { enabled: true, offset: 0 },
-          middle: { enabled: true, offset: 0 },
-          lower: { enabled: true, offset: 0 }
-        }
+        upper: { enabled: true, offset: 0 },
+        middle: { enabled: true, offset: 0 },
+        lower: { enabled: true, offset: 0 }
       },
       weekly: {
-        lines: {
-          upper: { enabled: true, offset: 0 },
-          middle: { enabled: true, offset: 0 },
-          lower: { enabled: true, offset: 0 }
-        }
+        upper: { enabled: true, offset: 0 },
+        middle: { enabled: true, offset: 0 },
+        lower: { enabled: true, offset: 0 }
       },
       monthly: {
-        lines: {
-          upper: { enabled: true, offset: 0 },
-          middle: { enabled: true, offset: 0 },
-          lower: { enabled: true, offset: 0 }
-        }
+        upper: { enabled: true, offset: 0 },
+        middle: { enabled: true, offset: 0 },
+        lower: { enabled: true, offset: 0 }
       }
     },
     profitLossRatio: {
@@ -77,7 +69,8 @@ export default function SubscriptionSettings() {
 
   const [expandedPeriods, setExpandedPeriods] = useState<Period[]>([]);
 
-  const handleBollSettingChange = (period: Period, field: string, value: any, lineType?: Line) => {
+  const handleBollSettingChange = (period: Period, field: string, value: boolean | number, lineType?: Line) => {
+    console.log(period, field, value, lineType, 'handleBollSettingChange');
     setSubscriptionForm(prev => {
       if (lineType) {
         return {
@@ -86,12 +79,9 @@ export default function SubscriptionSettings() {
             ...prev.bollSettings,
             [period]: {
               ...prev.bollSettings[period],
-              lines: {
-                ...prev.bollSettings[period].lines,
-                [lineType]: {
-                  ...prev.bollSettings[period].lines[lineType],
-                  [field]: value
-                }
+              [lineType]: {
+                ...prev.bollSettings[period][lineType],
+                [field]: value
               }
             }
           }
@@ -118,12 +108,10 @@ export default function SubscriptionSettings() {
   };
 
   const switchSubmit = (checked: boolean) => {
-    console.log(checked, 'switchSubmit');
     setSubscriptionForm(prev => ({ ...prev, isSubscribed: checked }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log(subscriptionForm, 'subscriptionForm');
     e.preventDefault();
     try {
       const subscriptionSettings = {
@@ -183,12 +171,14 @@ export default function SubscriptionSettings() {
               {LINES.map(line => (
                 <div key={line} className="flex items-center gap-4">
                   <Checkbox
-                    checked={subscriptionForm.bollSettings[period as Period].lines[line as Line].enabled}
-                    onChange={checked => handleBollSettingChange(period as Period, 'enabled', checked, line as Line)}
+                    checked={subscriptionForm.bollSettings[period as Period][line as Line].enabled}
+                    onChange={event =>
+                      handleBollSettingChange(period as Period, 'enabled', event.target.checked, line as Line)
+                    }
                   >
                     {line === 'upper' ? '上轨线' : line === 'middle' ? '中轨线' : '下轨线'}
                   </Checkbox>
-                  {subscriptionForm.bollSettings[period as Period].lines[line as Line].enabled && (
+                  {subscriptionForm.bollSettings[period as Period][line as Line].enabled && (
                     <div className="flex items-center gap-2">
                       <span>偏移:</span>
                       <Input
