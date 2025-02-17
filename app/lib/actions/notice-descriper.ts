@@ -5,6 +5,7 @@ import { sql } from '@vercel/postgres';
 import { StockData } from '@/app/crawler/stock-crawler';
 import { postMail } from '@/app/lib/utils/monitor-stock'; // 假设已存在邮件发送工具
 import { getAllSubscriptionSettings } from './subscription';
+import { SettingItem, DescriptStockItem, calculateBOLL } from '@/app/lib/utils/monitor-stock';
 import { batchGetStockKline } from '@/app/crawler/stock-crawler'; // 批量获取股票K线数据
 
 // 生成邮件内容模板
@@ -70,51 +71,53 @@ export async function sendNotificationsToAllSubscribers() {
   try {
     // 1. 获取所有订阅设置
     const descriptionInfoList = await getAllSubscriptionSettings();
-    // const { userId = '', stockSymbol = '', settings = {} } = descriptionInfoList[0];
-    // console.log('allSettings', userId, stockSymbol, settings);
+    console.log('descriptionInfoList', descriptionInfoList);
+    const subscripters: DescriptStockItem[] = []; //所有订阅的股票
+    const templateSetting: SettingItem[] = []; //订阅者们的订阅设置
+    const stockKlineList: string[] = [];
     descriptionInfoList.forEach(item => {
-      const { userId = '', stockSymbol = '', settings = {} } = item;
-      const { bollSettings = {} } = settings;
+      const { userId = '', stockSymbol = '', settings, email = '617938514@qq.com' } = item;
+      const { bollSettings = {} } = settings || {};
       const { daily = {}, weekly = {}, monthly = {} } = bollSettings;
       console.log('daily', daily);
       console.log('weekly', weekly);
       console.log('monthly', monthly);
+      stockKlineList.push(stockSymbol);
     });
+    // 获取20条K线数据
+    const stockDayKlineData = await batchGetStockKline(stockKlineList, 'day', -21);
+    const stockWeekKlineData = await batchGetStockKline(stockKlineList, 'week', -21);
+    const stockMonthKlineData = await batchGetStockKline(stockKlineList, 'month', -21);
 
-    // 2. 获取股票基本信息
-    // 2. 获取股票基本信息
-    // const stockRes = await sql`
-    //   SELECT * FROM stocks
-    //   WHERE symbol = ${stockSymbol}
-    //   LIMIT 1
-    // `;
-    // const stockData = stockRes.rows[0] as StockData;
+    console.log('stockDayKlineData', stockDayKlineData);
 
-    // // 3. 遍历所有订阅者并发送邮件
-    // for (const setting of allSettings) {
-    //   if (setting.stockSymbol === stockSymbol) {
-    //     // 获取用户邮箱
-    //     const userRes = await sql`
-    //       SELECT email FROM users
-    //       WHERE id = ${setting.userId}
-    //     `;
-    //     const userEmail = userRes.rows[0]?.email;
-
-    //     if (userEmail) {
-    //       // 生成邮件内容
-    //       const { subject, html } = generateEmailContent(stockData, setting.settings, currentPrice);
-
-    //       // 发送邮件
-    //       await postMail({
-    //         to: userEmail,
-    //         subject,
-    //         html
-    //       });
-    //     }
-    //   }
+    // stockKlineData {
+    //   SH600000: { item: [], column: [] },
+    //   SH600010: { item: [], column: [] },
+    //   SH600021: { item: [], column: [] },
+    //   SH600023: { item: [], column: [] },
     // }
-
-    return { success: true, count: allSettings.length };
+    // 日布林线值
+    const stockKlineDataList = Object.keys(stockDayKlineData).map(x => {
+      const [dayBollTopValue, dayBollMiddleValue, dayBollBottomValue] = calculateBOLL(
+        stockDayKlineData[x].item,
+        stockDayKlineData[x].column
+      );
+      return {
+        stockCode: x,
+        dayBollTopValue,
+        dayBollMiddleValue,
+        dayBollBottomValue
+        // weekBollTopValue: x.upper,
+        // weekBollBottomValue: x.lower,
+        // monthBollTopValue: x.upper,
+        // monthBollBottomValue: x.lower,
+        // high: x.high,
+        // low: x.low
+      };
+    });
+    // postMail([], []);
+    return { success: true, count: 0 };
   } catch (error) {
     console.error('邮件通知发送失败:', error);
     return { success: false, error: '邮件发送失败' };

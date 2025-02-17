@@ -1,6 +1,6 @@
 import { sendMail } from '../notification-tool/email';
 
-interface SettingItem {
+export interface SettingItem {
   // 股票代码
   stockCode: string;
   // 订阅是否开启
@@ -25,7 +25,7 @@ interface SettingItem {
   monthOffset?: number;
 }
 
-interface descriptStockItem {
+export interface DescriptStockItem {
   // 股票代码
   stockCode: string;
   // 当前日BOLL上轨值
@@ -44,8 +44,39 @@ interface descriptStockItem {
   low?: number;
 }
 
+/**
+ * 计算当天BOLL指标（布林线）
+ * @param data 股票K线数据，二维数组格式
+ * @param column 数据列名数组
+ * @param period 计算周期，默认为20
+ * @returns 返回包含当天BOLL上轨、中轨、下轨的数组
+ */
+export const calculateBOLL = (data: number[][], column: string[], period = 20) => {
+  const closeIndex = column.indexOf('close');
+
+  // 数据不足时返回空值
+  if (data.length < period) {
+    return [null, null, null];
+  }
+
+  // 获取最近period天的收盘价
+  const closePrices = data.slice(-period).map(item => Number(item[closeIndex]));
+
+  // 计算中轨（MA）：周期内收盘价的平均值
+  const ma = closePrices.reduce((sum, price) => sum + price, 0) / period;
+
+  // 计算标准差
+  const std = Math.sqrt(closePrices.reduce((sum, price) => sum + Math.pow(price - ma, 2), 0) / period);
+
+  // 计算上轨和下轨
+  const upper = ma + 2 * std; // 上轨 = 中轨 + 2倍标准差
+  const lower = ma - 2 * std; // 下轨 = 中轨 - 2倍标准差
+
+  return [upper, ma, lower];
+};
+
 // 发送邮件
-export const postMail = async function (descriptionList: descriptStockItem[], templateSetting: SettingItem[]) {
+export const postMail = async function (descriptionList: DescriptStockItem[], templateSetting: SettingItem[]) {
   try {
     // 遍历所有订阅设置
     for (const setting of templateSetting) {
