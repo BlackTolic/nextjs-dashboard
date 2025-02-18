@@ -66,28 +66,41 @@ function generateEmailContent(
   return { subject, html };
 }
 
+interface StockQry {
+  target: 'day' | 'week' | 'month';
+  stockSymbol: string;
+}
+
 // 发送通知给所有订阅者
 export async function sendNotificationsToAllSubscribers() {
   try {
     // 1. 获取所有订阅设置
     const descriptionInfoList = await getAllSubscriptionSettings();
     console.log('descriptionInfoList', descriptionInfoList);
-    const subscripters: DescriptStockItem[] = []; //所有订阅的股票
-    const templateSetting: SettingItem[] = []; //订阅者们的订阅设置
-    const stockKlineList: string[] = [];
+    //所有订阅的股票
+    // const subscripters: DescriptStockItem[] = []; 
+    //订阅者们的订阅设置
+    const templateSetting: SettingItem[] = []; 
+    // 订阅的股票代码
+    const stockKlineList:StockQry[] = [];
     descriptionInfoList.forEach(item => {
       const { userId = '', stockSymbol = '', settings, email = '617938514@qq.com' } = item;
       const { bollSettings = {} } = settings || {};
       const { daily = {}, weekly = {}, monthly = {} } = bollSettings;
-      console.log('daily', daily);
-      console.log('weekly', weekly);
-      console.log('monthly', monthly);
-      stockKlineList.push(stockSymbol);
+      if (daily.dayBollTop) { 
+        stockKlineList.push({ target: 'day', stockSymbol });
+      }
+      if (weekly.weekBollTop) {
+        stockKlineList.push({ target: 'week', stockSymbol });
+      }
+      if (monthly.monthBollTop) {
+        stockKlineList.push({ target: 'month', stockSymbol });
+      }
     });
     // 获取20条K线数据
-    const stockDayKlineData = await batchGetStockKline(stockKlineList, 'day', -21);
-    const stockWeekKlineData = await batchGetStockKline(stockKlineList, 'week', -21);
-    const stockMonthKlineData = await batchGetStockKline(stockKlineList, 'month', -21);
+    const stockDayKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'day', -21);
+    const stockWeekKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'week', -21);
+    const stockMonthKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'month', -21);
 
     console.log('stockDayKlineData', stockDayKlineData);
 
@@ -99,15 +112,21 @@ export async function sendNotificationsToAllSubscribers() {
     // }
     // 日布林线值
     const stockKlineDataList = Object.keys(stockDayKlineData).map(x => {
+      // 计算20个交易日的boll值
       const [dayBollTopValue, dayBollMiddleValue, dayBollBottomValue] = calculateBOLL(
         stockDayKlineData[x].item,
         stockDayKlineData[x].column
       );
+      // 计算当日最高价和最低价
+      const dayHigh = stockDayKlineData[x].item[0].high;
+      const dayLow = stockDayKlineData[x].item[0].low;
       return {
         stockCode: x,
         dayBollTopValue,
         dayBollMiddleValue,
-        dayBollBottomValue
+        dayBollBottomValue,
+        dayHigh,
+        dayLow
         // weekBollTopValue: x.upper,
         // weekBollBottomValue: x.lower,
         // monthBollTopValue: x.upper,
@@ -116,6 +135,7 @@ export async function sendNotificationsToAllSubscribers() {
         // low: x.low
       };
     });
+    const 
     // postMail([], []);
     return { success: true, count: 0 };
   } catch (error) {
