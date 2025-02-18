@@ -74,42 +74,55 @@ interface StockQry {
 // 发送通知给所有订阅者
 export async function sendNotificationsToAllSubscribers() {
   try {
-    // 1. 获取所有订阅设置
+    // 获取所有订阅设置
     const descriptionInfoList = await getAllSubscriptionSettings();
-    console.log('descriptionInfoList', descriptionInfoList);
+    // console.log(JSON.stringify(descriptionInfoList, null, 2), 'descriptionInfoList');
     //所有订阅的股票
-    // const subscripters: DescriptStockItem[] = []; 
+    // const subscripters: DescriptStockItem[] = [];
     //订阅者们的订阅设置
-    const templateSetting: SettingItem[] = []; 
+    const templateSetting: SettingItem[] = [];
     // 订阅的股票代码
-    const stockKlineList:StockQry[] = [];
+    const stockKlineList: StockQry[] = [];
     descriptionInfoList.forEach(item => {
       const { userId = '', stockSymbol = '', settings, email = '617938514@qq.com' } = item;
-      const { bollSettings = {} } = settings || {};
-      const { daily = {}, weekly = {}, monthly = {} } = bollSettings;
-      if (daily.dayBollTop) { 
+      const { isSubscribed = false } = settings ?? {};
+      const { daily = {}, weekly = {}, monthly = {} } = settings?.bollSettings ?? {};
+      //
+      if (!isSubscribed) return;
+      console.log(JSON.stringify(item, null, 2), 777777);
+      // console.log(daily, 888888);
+      // daily中存在一个enabled为true的boll设置
+      if (Object.values(daily).some((x: { enabled: boolean }) => x.enabled)) {
         stockKlineList.push({ target: 'day', stockSymbol });
       }
-      if (weekly.weekBollTop) {
+      if (Object.values(weekly).some((x: { enabled: boolean }) => x.enabled)) {
         stockKlineList.push({ target: 'week', stockSymbol });
       }
-      if (monthly.monthBollTop) {
+      if (Object.values(monthly).some((x: { enabled: boolean }) => x.enabled)) {
         stockKlineList.push({ target: 'month', stockSymbol });
       }
+      templateSetting.push({
+        stockCode: stockSymbol,
+        isOpen: isSubscribed,
+        subscriberEmail: email,
+        dayBollTop: daily.dayBollTop,
+        dayBollMiddle: daily.dayBollMiddle,
+        dayBollBottom: daily.dayBollBottom,
+        dayOffset: daily.dayOffset,
+        weekBollTop: weekly.weekBollTop,
+        weekBollMiddle: weekly.weekBollMiddle,
+        weekBollBottom: weekly.weekBollBottom
+      });
     });
     // 获取20条K线数据
-    const stockDayKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'day', -21);
-    const stockWeekKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'week', -21);
-    const stockMonthKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'month', -21);
+    const stockDayKlineData = await batchGetStockKline(
+      stockKlineList.map(x => x.stockSymbol),
+      'day',
+      -21
+    );
+    // const stockWeekKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'week', -21);
+    // const stockMonthKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'month', -21);
 
-    console.log('stockDayKlineData', stockDayKlineData);
-
-    // stockKlineData {
-    //   SH600000: { item: [], column: [] },
-    //   SH600010: { item: [], column: [] },
-    //   SH600021: { item: [], column: [] },
-    //   SH600023: { item: [], column: [] },
-    // }
     // 日布林线值
     const stockKlineDataList = Object.keys(stockDayKlineData).map(x => {
       // 计算20个交易日的boll值
@@ -125,8 +138,8 @@ export async function sendNotificationsToAllSubscribers() {
         dayBollTopValue,
         dayBollMiddleValue,
         dayBollBottomValue,
-        dayHigh,
-        dayLow
+        high: dayHigh,
+        low: dayLow
         // weekBollTopValue: x.upper,
         // weekBollBottomValue: x.lower,
         // monthBollTopValue: x.upper,
@@ -135,8 +148,10 @@ export async function sendNotificationsToAllSubscribers() {
         // low: x.low
       };
     });
-    const 
-    // postMail([], []);
+    // const
+    postMail(stockKlineDataList, templateSetting);
+    console.log('stockKlineDataList', stockKlineDataList);
+    console.log('templateSetting', templateSetting);
     return { success: true, count: 0 };
   } catch (error) {
     console.error('邮件通知发送失败:', error);
