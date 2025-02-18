@@ -53,7 +53,6 @@ export async function saveSubscriptionSettings(settings: SubscriptionSettings) {
         settings = ${settingsJson}::jsonb,
         updated_at = NOW()
     `;
-
     return { success: true };
   } catch (error) {
     console.error('保存订阅设置失败:', error);

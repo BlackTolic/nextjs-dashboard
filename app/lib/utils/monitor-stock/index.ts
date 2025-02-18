@@ -29,15 +29,15 @@ export interface DescriptStockItem {
   // 股票代码
   stockCode: string;
   // 当前日BOLL上轨值
-  dayBollTopValue: number;
+  dayBollTopValue: number | null;
   // 当前日BOLL中轨值
-  dayBollMiddleValue: number;
+  dayBollMiddleValue: number | null;
   // 当前日BOLL下轨值
-  dayBollBottomValue: number;
-  weekBollTopValue: number;
-  weekBollBottomValue: number;
-  monthBollTopValue: number;
-  monthBollBottomValue: number;
+  dayBollBottomValue?: number | null;
+  weekBollTopValue?: number | null;
+  weekBollBottomValue?: number | null;
+  monthBollTopValue?: number | null;
+  monthBollBottomValue?: number | null;
   // 当前股价最高值
   high?: number;
   // 当前股价最低值
