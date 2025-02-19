@@ -115,18 +115,40 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
         formatter: function (params: any) {
           const date = params[0].axisValue;
           let res = `<div style="font-size:14px;color:#666;font-weight:400;line-height:1;">日期：${date}<br/>`;
+
+          // 获取K线数据
+          const klineData = params.find((p: any) => p.seriesName === 'K线');
+          if (klineData) {
+            const dataIndex = klineData.dataIndex;
+            const [_, open, close, low, high] = klineData.data;
+
+            // 获取前一日收盘价
+            const prevClose = data[dataIndex - 1]?.[closeIndex] || open;
+
+            // 计算涨跌幅（与前一日收盘价比较）
+            const change = prevClose !== 0 ? (((close - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
+
+            // 根据涨跌设置颜色
+            const color = close >= prevClose ? '#ef5350' : '#26a69a';
+
+            res += `
+              开盘：${open}<br/>
+              收盘：${close}<br/>
+              最低：${low}<br/>
+              最高：${high}<br/>
+              <span style="color:${color}">涨跌幅：${change}%</span>
+            `;
+          }
+
+          // 其他系列数据保持不变
           params.forEach((item: any) => {
-            if (item.seriesName === 'K线') {
-              res += `开盘：${item.data[1]}<br/>`;
-              res += `收盘：${item.data[2]}<br/>`;
-              res += `最低：${item.data[3]}<br/>`;
-              res += `最高：${item.data[4]}<br/>`;
-            } else if (item.seriesName === '成交量') {
+            if (item.seriesName === '成交量') {
               res += `成交量：${item.data}<br/>`;
-            } else {
+            } else if (item.seriesName !== 'K线') {
               res += `${item.seriesName}：${item.data}<br/>`;
             }
           });
+
           return res;
         }
       },

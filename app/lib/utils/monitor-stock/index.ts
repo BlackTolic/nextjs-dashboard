@@ -85,6 +85,7 @@ export const postMail = async function (descriptionList: DescriptStockItem[], te
         isOpen,
         subscriberEmail,
         dayBollTop,
+        dayBollMiddle,
         dayBollBottom,
         dayOffset,
         weekBollTop,
@@ -93,14 +94,12 @@ export const postMail = async function (descriptionList: DescriptStockItem[], te
         monthBollBottom,
         monthOffset
       } = setting;
-
       // 如果订阅未开启，跳过
       if (!isOpen) return;
 
       // 查找对应的股票信息
       const stockItem = descriptionList.find(item => item.stockCode === stockCode);
       if (!stockItem) return;
-
       // 检查日BOLL上轨条件
       if (dayBollTop && stockItem.high && stockItem.dayBollTopValue) {
         const triggerValue = stockItem.dayBollTopValue - (dayOffset || 0);
@@ -109,6 +108,18 @@ export const postMail = async function (descriptionList: DescriptStockItem[], te
             to: subscriberEmail.replaceAll('、', ','),
             subject: `${stockCode}-日BOLL上轨触发`,
             text: `${stockCode} 当前最高价 ${stockItem.high} 已达到日BOLL上轨值 ${stockItem.dayBollTopValue} 偏移 ${dayOffset}`
+          });
+        }
+      }
+
+      // 检查日BOLL中轨条件
+      if (dayBollMiddle && stockItem.dayBollMiddleValue) {
+        const triggerValue = stockItem.dayBollMiddleValue - (dayOffset || 0);
+        if (stockItem.high && stockItem.high >= triggerValue) {
+          await sendMail({
+            to: subscriberEmail.replaceAll('、', ','),
+            subject: `${stockCode}-日BOLL中轨触发`,
+            text: `${stockCode} 当前最高价 ${stockItem.high} 已达到日BOLL中轨值 ${stockItem.dayBollMiddleValue} 偏移 ${dayOffset}`
           });
         }
       }
