@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   user_id VARCHAR(255) NOT NULL,
   stock_symbol VARCHAR(20) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(user_id, stock_symbol)
+  UNIQUE(user_id, stock_symbol),
+  email TEXT
 );
 
 -- 创建索引

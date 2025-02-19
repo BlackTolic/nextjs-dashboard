@@ -110,7 +110,8 @@ export async function getAllSubscriptionSettings() {
       userId: row.user_id,
       stockSymbol: row.stock_symbol,
       settings: row.settings,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
+      email: row.email
     }));
   } catch (error) {
     console.error('获取全部订阅设置失败:', error);

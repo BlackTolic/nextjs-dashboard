@@ -63,11 +63,13 @@ export default function StockPoolContent() {
 
   const handleSubscribe = async (record: StockInfo) => {
     try {
+      // todo
       const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
       const isSubscribed = subscribedStocks.includes(record.symbol);
+      const email = '617938514@qq.com';
       const result = isSubscribed
         ? await removeSubscription(userId, record.symbol)
-        : await addSubscription(userId, record.symbol);
+        : await addSubscription(userId, record.symbol, email);
       if (result.success) {
         const newSubscribed = isSubscribed
           ? subscribedStocks.filter(code => code !== record.symbol)
