@@ -47,19 +47,19 @@ export default function SubscriptionSettings() {
     isSubscribed: false,
     bollSettings: {
       daily: {
-        upper: { enabled: true, offset: 0 },
-        middle: { enabled: true, offset: 0 },
-        lower: { enabled: true, offset: 0 }
+        upper: { enabled: false, offset: 0 },
+        middle: { enabled: false, offset: 0 },
+        lower: { enabled: false, offset: 0 }
       },
       weekly: {
-        upper: { enabled: true, offset: 0 },
-        middle: { enabled: true, offset: 0 },
-        lower: { enabled: true, offset: 0 }
+        upper: { enabled: false, offset: 0 },
+        middle: { enabled: false, offset: 0 },
+        lower: { enabled: false, offset: 0 }
       },
       monthly: {
-        upper: { enabled: true, offset: 0 },
-        middle: { enabled: true, offset: 0 },
-        lower: { enabled: true, offset: 0 }
+        upper: { enabled: false, offset: 0 },
+        middle: { enabled: false, offset: 0 },
+        lower: { enabled: false, offset: 0 }
       }
     },
     profitLossRatio: {

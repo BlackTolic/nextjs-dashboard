@@ -1,11 +1,19 @@
 'use server';
 import { sql } from '@vercel/postgres';
 
-export async function addSubscription(userId: string, stockSymbol: string) {
+interface Subscription {
+  user_id: string;
+  stock_symbol: string;
+  settings: any;
+  updated_at: Date;
+  email: string;
+}
+
+export async function addSubscription(userId: string, stockSymbol: string, email: string) {
   try {
     await sql`
-      INSERT INTO subscriptions (user_id, stock_symbol)
-      VALUES (${userId}, ${stockSymbol})
+      INSERT INTO subscriptions (user_id, stock_symbol, email)
+      VALUES (${userId}, ${stockSymbol}, ${email})
       ON CONFLICT (user_id, stock_symbol) DO NOTHING
     `;
     return { success: true };
