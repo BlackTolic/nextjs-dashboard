@@ -8,6 +8,8 @@ import { getAllSubscriptionSettings } from './subscription';
 import { SettingItem, DescriptStockItem, calculateBOLL } from '@/app/lib/utils/monitor-stock';
 import { batchGetStockKline } from '@/app/crawler/stock-crawler'; // 批量获取股票K线数据
 
+const BOLL_PERIOD = 20;
+
 // 生成邮件内容模板
 function generateEmailContent(
   stockData: StockData,
@@ -76,9 +78,6 @@ export async function sendNotificationsToAllSubscribers() {
   try {
     // 获取所有订阅设置
     const descriptionInfoList = await getAllSubscriptionSettings();
-    // console.log(JSON.stringify(descriptionInfoList, null, 2), 'descriptionInfoList');
-    //所有订阅的股票
-    // const subscripters: DescriptStockItem[] = [];
     //订阅者们的订阅设置
     const templateSetting: SettingItem[] = [];
     // 订阅的股票代码
@@ -89,28 +88,26 @@ export async function sendNotificationsToAllSubscribers() {
       const { daily = {}, weekly = {}, monthly = {} } = settings?.bollSettings ?? {};
       //
       if (!isSubscribed) return;
-      console.log(JSON.stringify(item, null, 2), 777777);
-      // console.log(daily, 888888);
       // daily中存在一个enabled为true的boll设置
-      if (Object.values(daily).some((x: { enabled: boolean }) => x.enabled)) {
+      if (Object.values(daily).some((x: any) => x.enabled)) {
         stockKlineList.push({ target: 'day', stockSymbol });
       }
-      if (Object.values(weekly).some((x: { enabled: boolean }) => x.enabled)) {
+      if (Object.values(weekly).some((x: any) => x.enabled)) {
         stockKlineList.push({ target: 'week', stockSymbol });
       }
-      if (Object.values(monthly).some((x: { enabled: boolean }) => x.enabled)) {
+      if (Object.values(monthly).some((x: any) => x.enabled)) {
         stockKlineList.push({ target: 'month', stockSymbol });
       }
       templateSetting.push({
         stockCode: stockSymbol,
         isOpen: isSubscribed,
         subscriberEmail: email,
-        dayBollTop: daily.dayBollTop,
-        dayBollMiddle: daily.dayBollMiddle,
-        dayBollBottom: daily.dayBollBottom,
-        dayOffset: daily.dayOffset,
-        weekBollTop: weekly.weekBollTop,
-        weekBollMiddle: weekly.weekBollMiddle,
+        dayBollTop: daily.upper.enabled,
+        dayBollMiddle: daily.middle.enabled,
+        dayBollBottom: daily.lower.enabled,
+        dayOffset: daily.upper.offset,
+        weekBollTop: weekly.upper.enabled,
+        weekBollMiddle: weekly.middle.enabled,
         weekBollBottom: weekly.weekBollBottom
       });
     });
@@ -118,7 +115,7 @@ export async function sendNotificationsToAllSubscribers() {
     const stockDayKlineData = await batchGetStockKline(
       stockKlineList.map(x => x.stockSymbol),
       'day',
-      -21
+      -BOLL_PERIOD
     );
     // const stockWeekKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'week', -21);
     // const stockMonthKlineData = await batchGetStockKline(stockKlineList.map(x => x.stockSymbol), 'month', -21);
@@ -128,11 +125,11 @@ export async function sendNotificationsToAllSubscribers() {
       // 计算20个交易日的boll值
       const [dayBollTopValue, dayBollMiddleValue, dayBollBottomValue] = calculateBOLL(
         stockDayKlineData[x].item,
-        stockDayKlineData[x].column
+        stockDayKlineData[x].column,
+        BOLL_PERIOD
       );
       // 计算当日最高价和最低价
-      const dayHigh = stockDayKlineData[x].item[0].high;
-      const dayLow = stockDayKlineData[x].item[0].low;
+      const [timestamp, volume, open, high, dayLow, dayHigh, ...rest] = stockDayKlineData[x].item[BOLL_PERIOD - 1];
       return {
         stockCode: x,
         dayBollTopValue,
