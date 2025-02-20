@@ -2,6 +2,8 @@
 
 import { sql } from '@vercel/postgres';
 import { auth } from '@/auth';
+import { revalidatePath } from 'next/cache';
+import { removeSubscription } from '@/app/lib/db/stock/subscription';
 
 // 订阅设置
 interface BollLine {
@@ -115,5 +117,34 @@ export async function getAllSubscriptionSettings() {
   } catch (error) {
     console.error('获取全部订阅设置失败:', error);
     throw new Error('获取订阅数据时发生错误');
+  }
+}
+
+// 删除订阅的服务器动作
+export async function removeSubscriptionAction(prevState: any, formData: FormData) {
+  const stockSymbol = formData.get('stockSymbol') as string;
+
+  try {
+    const session = {
+      user: {
+        id: '410544b2-4001-4271-9855-fec4b6a6442a'
+      }
+    };
+
+    if (!session?.user?.id) {
+      throw new Error('未登录用户');
+    }
+
+    const result = await removeSubscription(session.user.id, stockSymbol);
+
+    if (result.success) {
+      revalidatePath('/dashboard/subscriptions');
+      return { success: true };
+    } else {
+      return { success: false, error: '删除失败' };
+    }
+  } catch (error) {
+    console.error('删除订阅失败:', error);
+    return { success: false, error: '删除失败，请重试' };
   }
 }

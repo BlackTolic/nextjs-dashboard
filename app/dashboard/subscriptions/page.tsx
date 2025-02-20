@@ -7,6 +7,7 @@ import { pollXueqiuStocksList, crawlXueqiuStocksList } from '@/app/crawler/stock
 import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 import { redirect } from 'next/navigation';
 import Search from '@/app/ui/search';
+// import { useEffect, useState } from 'react';
 // import { redirect } from '@heroui/react';
 
 const handleTestx = async function () {
@@ -36,13 +37,15 @@ async function handleSearch(formData: FormData) {
   redirect(`/dashboard/subscriptions?${params.toString()}`);
 }
 
-async function Subscriptions(props: { searchParams: Promise<{ query: string }> }) {
-  const { query = '' } = await Promise.resolve(props.searchParams ?? {});
+export default async function SubscriptionsPage({ searchParams }: { searchParams?: { query?: string } }) {
+  const query = searchParams?.query || '';
   const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
-  const allSubscriptions = await getUserSubscriptions(userId);
+
+  // 服务端获取订阅数据
+  const subscriptions = await getUserSubscriptions(userId);
 
   // 根据搜索关键词筛选订阅
-  const filteredSubscriptions = allSubscriptions.filter(sub =>
+  const filteredSubscriptions = subscriptions.filter(sub =>
     query
       ? sub.stock_symbol.toLowerCase().includes(query.toLowerCase()) ||
         (sub.stock_name && sub.stock_name.toLowerCase().includes(query.toLowerCase()))
@@ -65,26 +68,19 @@ async function Subscriptions(props: { searchParams: Promise<{ query: string }> }
           </form>
         </div>
       </div>
+
       <div className="mt-4 mb-8">
-        <Search placeholder="搜索我的订阅..." /> {/* 搜索框 */}
+        <Search placeholder="搜索我的订阅..." />
       </div>
 
-      {/* Subscription cards */}
-      <div className="flex flex-wrap gap-4">
-        {filteredSubscriptions.map(sub => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+        {filteredSubscriptions.map(subscription => (
           <SubscriptionCard
-            key={sub.stock_symbol}
+            key={subscription.stock_symbol}
             subscription={{
-              id: sub.stock_symbol,
-              title: sub.stock_name || sub.stock_symbol,
-              description: sub.industry || '暂无行业信息',
-              maxValue: sub.max_price || 0,
-              minValue: sub.min_price || 0,
-              selectedOptions: {
-                showMaxValue: true,
-                showMinValue: true,
-                showChart: false
-              }
+              id: subscription.stock_symbol,
+              title: subscription.stock_name || subscription.stock_symbol,
+              description: subscription.industry || '暂无行业信息'
             }}
           />
         ))}
@@ -92,5 +88,3 @@ async function Subscriptions(props: { searchParams: Promise<{ query: string }> }
     </div>
   );
 }
-
-export default Subscriptions;
