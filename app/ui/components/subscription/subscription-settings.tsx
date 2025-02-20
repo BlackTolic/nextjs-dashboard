@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Switch, Checkbox, Input } from '@heroui/react';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { saveSubscriptionSettings } from '@/app/lib/actions/subscription';
+import { saveSubscriptionSettings, getSubscriptionSettings } from '@/app/lib/actions/subscription';
 import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { updateDescriptMessage } from '@/app/lib/init/scheduler';
@@ -39,9 +39,14 @@ type Period = (typeof PERIODS)[number];
 const LINES = ['upper', 'middle', 'lower'] as const;
 type Line = (typeof LINES)[number];
 
-export default function SubscriptionSettings() {
+interface SubscriptionSettingsProps {
+  stockSymbol?: string;
+}
+
+export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettingsProps) {
   const params = useParams();
-  const stockSymbol = params.id as string;
+  const symbol = stockSymbol || (params.id as string);
+  const [loading, setLoading] = useState(true);
 
   const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>({
     isSubscribed: false,
@@ -69,6 +74,60 @@ export default function SubscriptionSettings() {
   });
 
   const [expandedPeriods, setExpandedPeriods] = useState<Period[]>([]);
+
+  // 获取订阅设置
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        const settings = await getSubscriptionSettings(symbol);
+        console.log('Fetched settings:', settings);
+
+        if (settings) {
+          // 确保数据结构匹配
+          setSubscriptionForm({
+            isSubscribed: settings.isSubscribed ?? false,
+            bollSettings: {
+              daily: settings.bollSettings?.daily ?? {
+                upper: { enabled: false, offset: 0 },
+                middle: { enabled: false, offset: 0 },
+                lower: { enabled: false, offset: 0 }
+              },
+              weekly: settings.bollSettings?.weekly ?? {
+                upper: { enabled: false, offset: 0 },
+                middle: { enabled: false, offset: 0 },
+                lower: { enabled: false, offset: 0 }
+              },
+              monthly: settings.bollSettings?.monthly ?? {
+                upper: { enabled: false, offset: 0 },
+                middle: { enabled: false, offset: 0 },
+                lower: { enabled: false, offset: 0 }
+              }
+            },
+            profitLossRatio: {
+              buyPrice: settings.profitLossRatio?.buyPrice ?? 0,
+              ratio: settings.profitLossRatio?.ratio ?? 2.0
+            }
+          });
+
+          // 检查每个周期是否有勾选项，如果有则展开
+          const periodsToExpand = PERIODS.filter(period =>
+            LINES.some(line => settings.bollSettings?.[period]?.[line]?.enabled)
+          );
+          setExpandedPeriods(periodsToExpand);
+        }
+      } catch (error) {
+        console.error('获取订阅设置失败:', error);
+        toast.error('获取订阅设置失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (symbol) {
+      fetchSettings();
+    }
+  }, [symbol]);
 
   const handleBollSettingChange = (period: Period, field: string, value: boolean | number, lineType?: Line) => {
     console.log(period, field, value, lineType, 'handleBollSettingChange');
@@ -116,7 +175,7 @@ export default function SubscriptionSettings() {
     e.preventDefault();
     try {
       const subscriptionSettings = {
-        stockSymbol,
+        stockSymbol: symbol,
         isSubscribed: subscriptionForm.isSubscribed,
         bollSettings: subscriptionForm.bollSettings,
         profitLossRatio: subscriptionForm.profitLossRatio
@@ -136,12 +195,20 @@ export default function SubscriptionSettings() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* 订阅开关 */}
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">开启订阅</label>
-        <Switch checked={subscriptionForm.isSubscribed} onValueChange={switchSubmit} />
+        <Switch color="success" isSelected={subscriptionForm.isSubscribed} onValueChange={switchSubmit} />
       </div>
 
       {/* BOLL 线设置标题 */}
@@ -173,7 +240,8 @@ export default function SubscriptionSettings() {
               {LINES.map(line => (
                 <div key={line} className="flex items-center gap-4">
                   <Checkbox
-                    checked={subscriptionForm.bollSettings[period as Period][line as Line].enabled}
+                    color="success"
+                    isSelected={subscriptionForm.bollSettings[period as Period][line as Line].enabled}
                     onChange={event =>
                       handleBollSettingChange(period as Period, 'enabled', event.target.checked, line as Line)
                     }

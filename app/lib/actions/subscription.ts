@@ -63,8 +63,6 @@ export async function saveSubscriptionSettings(settings: SubscriptionSettings) {
 // 获取订阅设置
 export async function getSubscriptionSettings(stockSymbol: string) {
   try {
-    // const session = await auth();
-    //todo
     const session = {
       user: {
         id: '410544b2-4001-4271-9855-fec4b6a6442a'
@@ -84,7 +82,8 @@ export async function getSubscriptionSettings(stockSymbol: string) {
       return null;
     }
 
-    return JSON.parse(result.rows[0].settings);
+    // 数据库返回的是 JSON 对象，直接返回
+    return result.rows[0].settings;
   } catch (error) {
     console.error('获取订阅设置失败:', error);
     throw error;
