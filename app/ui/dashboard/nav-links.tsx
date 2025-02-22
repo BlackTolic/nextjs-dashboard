@@ -1,22 +1,9 @@
 'use client';
 
-import { UserGroupIcon, HomeIcon, DocumentDuplicateIcon, ChartBarIcon, BellIcon } from '@heroicons/react/24/outline';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-
-const links = [
-  { name: 'Home', href: '/dashboard', icon: HomeIcon },
-  {
-    name: 'Invoices',
-    href: '/dashboard/invoices',
-    icon: DocumentDuplicateIcon
-  },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
-  { name: '股票池', href: '/dashboard/stock-pool', icon: ChartBarIcon },
-  { name: '我的订阅', href: '/dashboard/subscriptions', icon: BellIcon }
-];
+import { links } from './nav-links-data';
 
 export default function NavLinks() {
   const pathname = usePathname();
@@ -27,7 +14,7 @@ export default function NavLinks() {
         const LinkIcon = link.icon;
         return (
           <Link
-            key={link.name}
+            key={link.href}
             href={link.href}
             className={clsx(
               'flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3',

@@ -31,4 +31,16 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 
 -- 创建索引
 CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
-CREATE INDEX idx_subscriptions_stock_symbol ON subscriptions(stock_symbol); 
+CREATE INDEX idx_subscriptions_stock_symbol ON subscriptions(stock_symbol);
+
+CREATE TABLE IF NOT EXISTS investment_thoughts (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
+);
+
+CREATE INDEX idx_investment_thoughts_user_id ON investment_thoughts(user_id); 
