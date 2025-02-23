@@ -8,8 +8,6 @@ import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 import { redirect } from 'next/navigation';
 import Search from '@/app/ui/search';
 import { NoSubscriptions } from '@/app/ui/components/card/no-subscriptions';
-// import { useEffect, useState } from 'react';
-// import { redirect } from '@heroui/react';
 
 const handleTestx = async function () {
   'use server';

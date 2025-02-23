@@ -1,7 +1,7 @@
 'use server';
 
 import { addThought, updateThought, type Thought } from '@/app/lib/actions/investment-thoughts';
-import { Button } from '@heroui/react';
+// import { Button } from '@heroui/react';
 import { redirect } from 'next/navigation';
 
 export default async function ThoughtForm({ thought }: { thought: Thought | null }) {
@@ -15,10 +15,11 @@ export default async function ThoughtForm({ thought }: { thought: Thought | null
       } else {
         await addThought(formData);
       }
-      redirect('/dashboard/investment-thoughts');
     } catch (error) {
       console.error(error);
-      throw new Error('保存失败，请重试');
+      // throw new Error('保存失败，请重试');
+    } finally {
+      redirect('/dashboard/investment-thoughts');
     }
   }
 
