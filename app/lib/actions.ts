@@ -2,14 +2,11 @@
 
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
-
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-
-import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { nextAuth } from '@/auth';
 
 // 定义发票表单的验证模式
 const FormSchema = z.object({
@@ -115,7 +112,7 @@ export async function deleteInvoice(id: string, formData: FormData): Promise<voi
 // 用户认证的服务器动作
 export async function authenticate(prevState: string | undefined, formData: FormData) {
   try {
-    await signIn('credentials', formData);
+    await nextAuth.signIn('credentials', formData);
   } catch (error) {
     if (error instanceof AuthError) {
       // 处理不同类型的认证错误
@@ -132,7 +129,7 @@ export async function authenticate(prevState: string | undefined, formData: Form
 
 export async function toggleStockSubscription(stockCode: string) {
   try {
-    const session = await auth();
+    const session = await nextAuth.auth();
     if (!session?.user?.name) {
       throw new Error('未登录用户');
     }

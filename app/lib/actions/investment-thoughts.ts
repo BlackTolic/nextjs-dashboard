@@ -1,8 +1,10 @@
 'use server';
 
 import { sql } from '@vercel/postgres';
-import { auth } from '@/auth';
+import { nextAuth } from '@/auth';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
+import { getSession } from 'next-auth/react';
 
 export interface Thought {
   id: string;
@@ -15,8 +17,8 @@ export interface Thought {
 export async function addThought(formData: FormData) {
   const title = formData.get('title') as string;
   const content = formData.get('content') as string;
-  const session = await auth();
-
+  const session = await nextAuth.auth();
+  console.log(session, 'session');
   if (!session?.user?.id) {
     throw new Error('未登录用户');
   }
@@ -35,8 +37,8 @@ export async function addThought(formData: FormData) {
 export async function updateThought(id: string, formData: FormData) {
   const title = formData.get('title') as string;
   const content = formData.get('content') as string;
-  const session = await auth();
-
+  const session = await getSession();
+  console.log(session, 'session3333');
   if (!session?.user?.id) {
     throw new Error('未登录用户');
   }
@@ -54,7 +56,7 @@ export async function updateThought(id: string, formData: FormData) {
 }
 
 export async function deleteThought(id: string) {
-  const session = await auth();
+  const session = await nextAuth.auth();
 
   if (!session?.user?.id) {
     throw new Error('未登录用户');
@@ -73,8 +75,11 @@ export async function deleteThought(id: string) {
 }
 
 export async function fetchThoughts(): Promise<Thought[]> {
-  const session = await auth();
-
+  // const session = await auth();
+  // const headersList = await headers();
+  // const userId = headersList.get('x-user-id');
+  const session = await nextAuth.auth();
+  console.log(session, 'session2222');
   if (!session?.user?.id) {
     return [];
   }
