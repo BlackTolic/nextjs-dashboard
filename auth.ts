@@ -36,7 +36,6 @@ export const nextAuth = NextAuth({
     Credentials({
       // credentials:{email,password,callbackUrl}
       async authorize(credentials) {
-        console.log('进入了Credentials校验页面:', credentials);
         // 获取表单格式校验的验证信息
         const parsedCredentials = z
           .object({ email: z.string().email(), password: z.string().min(6) })

@@ -122,7 +122,21 @@ async function seedRevenue() {
 // 新增执行 schema.sql 的函数
 async function executeSchemaSql() {
   try {
-    const schemaPath = join(process.cwd(), 'app/lib/db/stock/schema.sql');
+    const schemaPath = join(process.cwd(), 'app/lib/db/stock/investment-thoughts.sql');
+    const schemaSql = readFileSync(schemaPath, 'utf8');
+    await client.query(schemaSql);
+
+    console.log('Schema SQL 执行成功');
+  } catch (error) {
+    console.error('执行 Schema SQL 时出错:', error);
+    throw error;
+  }
+}
+
+// 新增执行 investment-thoughts.sql 的函数
+async function executeInvestmentThoughtsSql() {
+  try {
+    const schemaPath = join(process.cwd(), 'app/lib/db/stock/investment-thoughts.sql');
     const schemaSql = readFileSync(schemaPath, 'utf8');
 
     // 分割 SQL 语句（假设语句以分号结尾）
@@ -136,9 +150,9 @@ async function executeSchemaSql() {
       }
     }
 
-    console.log('Schema SQL 执行成功');
+    console.log('investment-thoughts.sql 执行成功');
   } catch (error) {
-    console.error('执行 Schema SQL 时出错:', error);
+    console.error('执行 investment-thoughts.sql 时出错:', error);
     throw error;
   }
 }
@@ -156,6 +170,9 @@ export async function GET() {
     await seedCustomers();
     await seedInvoices();
     await seedRevenue();
+
+    // 然后执行 investment-thoughts.sql
+    await executeInvestmentThoughtsSql();
 
     await client.sql`COMMIT`;
 

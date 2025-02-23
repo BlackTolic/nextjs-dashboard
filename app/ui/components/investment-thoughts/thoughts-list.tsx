@@ -1,15 +1,12 @@
-'use client';
-
 import { Thought } from '@/app/lib/actions/investment-thoughts';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { deleteThought } from '@/app/lib/actions/investment-thoughts';
+import { ThoughtActions } from './thought-actions';
 
 interface ThoughtsListProps {
   thoughts: Thought[];
-  onEdit: (thought: Thought) => void;
 }
 
-export default function ThoughtsList({ thoughts, onEdit }: ThoughtsListProps) {
+// 服务端渲染的列表组件
+export default function ThoughtsList({ thoughts }: ThoughtsListProps) {
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString('zh-CN', {
       year: 'numeric',
@@ -26,22 +23,7 @@ export default function ThoughtsList({ thoughts, onEdit }: ThoughtsListProps) {
         <div key={thought.id} className="py-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">{thought.title}</h3>
-            <div className="flex items-center gap-2">
-              <button onClick={() => onEdit(thought)} className="rounded-md p-2 hover:bg-gray-100">
-                <PencilIcon className="w-5 h-5 text-gray-500" />
-              </button>
-              <button
-                onClick={async () => {
-                  if (confirm('确定要删除这条记录吗？')) {
-                    await deleteThought(thought.id);
-                    window.location.reload();
-                  }
-                }}
-                className="rounded-md p-2 hover:bg-gray-100"
-              >
-                <TrashIcon className="w-5 h-5 text-red-500" />
-              </button>
-            </div>
+            <ThoughtActions thought={thought} />
           </div>
           <p className="mt-2 text-gray-600">{thought.content}</p>
           <div className="mt-2 text-sm text-gray-500">
