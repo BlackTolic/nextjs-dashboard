@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { removeSubscriptionAction } from '@/app/lib/actions/subscription';
 import { useFormStatus } from 'react-dom';
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 
 // 定义组件的属性接口
 interface SubscriptionCardProps {
@@ -39,7 +39,10 @@ const DeleteButton = () => {
 // 订阅卡片组件
 const SubscriptionCard = ({ subscription }: SubscriptionCardProps) => {
   const router = useRouter();
-  const [state, formAction] = useActionState(removeSubscriptionAction, null);
+  const [state, formAction] = useActionState(removeSubscriptionAction, {
+    success: false,
+    error: undefined
+  });
 
   const handleCardClick = () => {
     const params = new URLSearchParams({
@@ -56,14 +59,13 @@ const SubscriptionCard = ({ subscription }: SubscriptionCardProps) => {
     router.push(`/dashboard/subscriptions/${subscription.id}/edit?${params.toString()}`);
   };
 
-  // 处理状态变化
-  if (state) {
-    if (state.success) {
+  useEffect(() => {
+    if (state?.success) {
       toast.success('删除成功');
-    } else {
-      toast.error(state.error || '删除失败');
+    } else if (state?.error) {
+      toast.error(state.error);
     }
-  }
+  }, [state]);
 
   return (
     <div onClick={handleCardClick} className="cursor-pointer">
@@ -76,7 +78,7 @@ const SubscriptionCard = ({ subscription }: SubscriptionCardProps) => {
               <p className="text-sm text-gray-500">{subscription.description}</p>
             </div>
             <div className="flex gap-2">
-              <Link href={`/dashboard/subscriptions/${subscription.id}/edit`}>
+              <Link href={`/dashboard/subscriptions/${subscription.id}/edit?title=${subscription.title}`}>
                 <Button isIconOnly variant="light" size="sm" className="text-default-400 hover:text-default-600">
                   <PencilIcon className="h-5 w-5" />
                 </Button>

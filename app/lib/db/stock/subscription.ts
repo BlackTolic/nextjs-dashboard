@@ -1,6 +1,6 @@
 'use server';
 import { sql } from '@vercel/postgres';
-
+import { nextAuth } from '@/auth';
 interface Subscription {
   user_id: string;
   stock_symbol: string;
@@ -9,7 +9,9 @@ interface Subscription {
   email: string;
 }
 
-export async function addSubscription(userId: string, stockSymbol: string, email: string) {
+export async function addSubscription(stockSymbol: string, email: string) {
+  const session = await nextAuth.auth();
+  const userId = session?.user?.id;
   try {
     await sql`
       INSERT INTO subscriptions (user_id, stock_symbol, email)
@@ -23,7 +25,9 @@ export async function addSubscription(userId: string, stockSymbol: string, email
   }
 }
 
-export async function removeSubscription(userId: string, stockSymbol: string) {
+export async function removeSubscription(stockSymbol: string) {
+  const session = await nextAuth.auth();
+  const userId = session?.user?.id;
   try {
     await sql`
       DELETE FROM subscriptions
@@ -36,7 +40,9 @@ export async function removeSubscription(userId: string, stockSymbol: string) {
   }
 }
 
-export async function getUserSubscriptions(userId: string) {
+export async function getUserSubscriptions() {
+  const session = await nextAuth.auth();
+  const userId = session?.user?.id;
   try {
     const result = await sql`
       SELECT s.*, st.name as stock_name

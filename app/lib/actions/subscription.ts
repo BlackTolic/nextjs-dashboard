@@ -1,7 +1,7 @@
 'use server';
 
 import { sql } from '@vercel/postgres';
-import { auth } from '@/auth';
+import { nextAuth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 import { removeSubscription } from '@/app/lib/db/stock/subscription';
 
@@ -34,13 +34,7 @@ interface SubscriptionSettings {
 // 保存订阅设置
 export async function saveSubscriptionSettings(settings: SubscriptionSettings) {
   try {
-    // const session = await auth();
-    //todo
-    const session = {
-      user: {
-        id: '410544b2-4001-4271-9855-fec4b6a6442a'
-      }
-    };
+    const session = await nextAuth.auth();
     if (!session?.user?.id) {
       throw new Error('未登录用户');
     }
@@ -121,30 +115,20 @@ export async function getAllSubscriptionSettings() {
 }
 
 // 删除订阅的服务器动作
-export async function removeSubscriptionAction(prevState: any, formData: FormData) {
+export async function removeSubscriptionAction(state: { success: boolean; error?: string }, formData: FormData) {
   const stockSymbol = formData.get('stockSymbol') as string;
-
   try {
-    const session = {
-      user: {
-        id: '410544b2-4001-4271-9855-fec4b6a6442a'
-      }
-    };
-
+    const session = await nextAuth.auth();
     if (!session?.user?.id) {
-      throw new Error('未登录用户');
+      return { success: false, error: '未登录用户' };
     }
-
-    const result = await removeSubscription(session.user.id, stockSymbol);
-
+    const result = await removeSubscription(stockSymbol);
     if (result.success) {
       revalidatePath('/dashboard/subscriptions');
       return { success: true };
-    } else {
-      return { success: false, error: '删除失败' };
     }
+    return { success: false, error: '删除失败' };
   } catch (error) {
-    console.error('删除订阅失败:', error);
     return { success: false, error: '删除失败，请重试' };
   }
 }

@@ -7,12 +7,12 @@ import { pollXueqiuStocksList, crawlXueqiuStocksList } from '@/app/crawler/stock
 import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 import { redirect } from 'next/navigation';
 import Search from '@/app/ui/search';
+import { NoSubscriptions } from '@/app/ui/components/card/no-subscriptions';
 // import { useEffect, useState } from 'react';
 // import { redirect } from '@heroui/react';
 
 const handleTestx = async function () {
   'use server';
-  console.log(8888);
 };
 
 const handlePolling = async function () {
@@ -39,18 +39,7 @@ async function handleSearch(formData: FormData) {
 
 export default async function SubscriptionsPage({ searchParams }: { searchParams?: { query?: string } }) {
   const query = searchParams?.query || '';
-  const userId = '410544b2-4001-4271-9855-fec4b6a6442a';
-
-  // 服务端获取订阅数据
-  const subscriptions = await getUserSubscriptions(userId);
-
-  // 根据搜索关键词筛选订阅
-  const filteredSubscriptions = subscriptions.filter(sub =>
-    query
-      ? sub.stock_symbol.toLowerCase().includes(query.toLowerCase()) ||
-        (sub.stock_name && sub.stock_name.toLowerCase().includes(query.toLowerCase()))
-      : true
-  );
+  const subscriptions = await getUserSubscriptions();
 
   return (
     <div>
@@ -73,18 +62,41 @@ export default async function SubscriptionsPage({ searchParams }: { searchParams
         <Search placeholder="搜索我的订阅..." />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-        {filteredSubscriptions.map(subscription => (
-          <SubscriptionCard
-            key={subscription.stock_symbol}
-            subscription={{
-              id: subscription.stock_symbol,
-              title: subscription.stock_name || subscription.stock_symbol,
-              description: subscription.industry || '暂无行业信息'
-            }}
-          />
-        ))}
-      </div>
+      {!subscriptions || subscriptions.length === 0 ? (
+        <NoSubscriptions />
+      ) : (
+        <>
+          {/* 有搜索结果但筛选后为空 */}
+          {query &&
+          subscriptions.filter(
+            subscription =>
+              subscription.stock_name?.toLowerCase().includes(query.toLowerCase()) ||
+              subscription.stock_symbol?.toLowerCase().includes(query.toLowerCase())
+          ).length === 0 ? (
+            <NoSubscriptions message="未找到匹配的订阅" />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {subscriptions
+                .filter(
+                  subscription =>
+                    !query ||
+                    subscription.stock_name?.toLowerCase().includes(query.toLowerCase()) ||
+                    subscription.stock_symbol?.toLowerCase().includes(query.toLowerCase())
+                )
+                .map(subscription => (
+                  <SubscriptionCard
+                    key={subscription.stock_symbol}
+                    subscription={{
+                      id: subscription.stock_symbol,
+                      title: subscription.stock_name || subscription.stock_symbol,
+                      description: subscription.stock_symbol
+                    }}
+                  />
+                ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

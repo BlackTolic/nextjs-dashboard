@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { nextAuth } from '@/auth';
+import bcrypt from 'bcryptjs';
+import { headers } from 'next/headers';
 
 // 定义发票表单的验证模式
 const FormSchema = z.object({
@@ -159,5 +161,47 @@ export async function toggleStockSubscription(stockCode: string) {
   } catch (error) {
     console.error('更新订阅失败:', error);
     throw new Error('更新订阅失败');
+  }
+}
+
+export async function register(formData: FormData) {
+  'use server';
+
+  // 获取表单数据
+  const rawFormData = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password')
+  };
+
+  // 验证表单数据
+  const validatedFields = z
+    .object({
+      name: z.string().min(2, '用户名至少需要2个字符'),
+      email: z.string().email('请输入有效的邮箱地址'),
+      password: z.string().min(6, '密码至少需要6个字符')
+    })
+    .safeParse(rawFormData);
+
+  if (!validatedFields.success) {
+    console.log(validatedFields.error, 'validatedFields.error');
+    throw new Error('注册失败，请检查输入');
+  }
+
+  const { name, email, password } = validatedFields.data;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  try {
+    await sql`
+      INSERT INTO users (name, email, password)
+      VALUES (${name}, ${email}, ${hashedPassword})
+    `;
+    redirect('/login');
+  } catch (error: any) {
+    console.log(error, 'error');
+    if (error.code === '23505') {
+      throw new Error('该邮箱已被注册');
+    }
+    throw new Error('注册失败，请稍后重试');
   }
 }

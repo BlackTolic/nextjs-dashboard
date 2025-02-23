@@ -1,5 +1,11 @@
+'use client';
 import AcmeLogo from '@/app/ui/acme-logo';
 import LoginForm from '@/app/ui/login-form';
+import { Metadata } from 'next';
+
+// export const metadata: Metadata = {
+//   title: '登录'
+// };
 
 export default function LoginPage() {
   return (
@@ -11,6 +17,14 @@ export default function LoginPage() {
           </div>
         </div>
         <LoginForm />
+        <div className="flex justify-center">
+          <button
+            onClick={() => (window.location.href = '/register')}
+            className="text-sm text-blue-500 hover:text-blue-600"
+          >
+            还没有账号？点击注册
+          </button>
+        </div>
       </div>
     </main>
   );

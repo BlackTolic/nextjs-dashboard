@@ -13,14 +13,12 @@ export default function Search({ placeholder }: { placeholder: string }) {
 
   function handleSearch(term: string) {
     const params = new URLSearchParams(searchParams);
-    console.log(params);
     params.set('page', '1');
     if (term) {
       params.set('query', term);
     } else {
       params.delete('query');
     }
-    console.log(params, 'params000');
     // 查询参数跳转
     replace(`${pathname}?${params.toString()}`);
   }

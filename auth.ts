@@ -8,15 +8,20 @@ import Credentials from 'next-auth/providers/credentials';
 import { authConfig } from './auth.config';
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
-import type { User } from '@/app/lib/definitions';
 import bcrypt from 'bcryptjs';
 import type { NextAuthConfig } from 'next-auth';
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+};
 
 // 获取数据库中的用户信息
 async function getUser(email: string): Promise<User | undefined> {
   try {
     const user = await sql<User>`SELECT * FROM users WHERE email=${email}`;
-    console.log(user.rows[0], 'user');
     return user.rows[0];
   } catch (error) {
     console.error('Failed to fetch user:', error);
@@ -31,7 +36,7 @@ export const nextAuth = NextAuth({
     Credentials({
       // credentials:{email,password,callbackUrl}
       async authorize(credentials) {
-        console.log('进入了Credentials校验页面');
+        console.log('进入了Credentials校验页面:', credentials);
         // 获取表单格式校验的验证信息
         const parsedCredentials = z
           .object({ email: z.string().email(), password: z.string().min(6) })
