@@ -180,7 +180,6 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
         bollSettings: subscriptionForm.bollSettings,
         profitLossRatio: subscriptionForm.profitLossRatio
       };
-      console.log(subscriptionSettings, 'subscriptionSettings');
       const result = await saveSubscriptionSettings(subscriptionSettings);
 
       if (result.success) {

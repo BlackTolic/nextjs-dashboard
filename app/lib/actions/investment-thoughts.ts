@@ -32,10 +32,12 @@ export async function addThought(formData: FormData) {
   }
 }
 
+// 更新投资想法
 export async function updateThought(id: string, formData: FormData) {
   const title = formData.get('title') as string;
   const content = formData.get('content') as string;
-  const session = await getSession();
+  // 获取当前登录用户
+  const session = await nextAuth.auth();
   if (!session?.user?.id) {
     throw new Error('未登录用户');
   }
