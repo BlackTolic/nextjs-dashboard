@@ -111,7 +111,6 @@ class StockCrawler {
     this.headers = {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-      // Cookie: `cookiesu=301738677203513; xq_a_token=b1d767edc014ddf478005982ba9e053910dad8dc; xqat=b1d767edc014ddf478005982ba9e053910dad8dc; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTc0MDg3NzAzNywiY3RtIjoxNzM4Njc3MjAzNTE4LCJjaWQiOiJkOWQwbjRBWnVwIn0.cS4kqbA1TboTv3zg5YJZsoyeQ7rnJexvchCOXFULnBLbLjwZdOH_1NSYEuhl3kl6Nhhm3Jgqmw6mOcyQdydwkFT1PZkOIt3qGwa6m7kA8dlE-R_kZ2c9LBzITb9NtzBPk2nCpCdg-ScvbuzHKbubXB6DvENMd79K7u0LyjHvTtvAGwMmDxJ8q1NKs6-i8GkvWeqJtsKTksXVAdJfridYQ-8eNlEmTJSJL9tbr4TbNn4RTml9oYevk8pqUydrThBOQOZCRNMvW5rDFl7wrbL9O3_hMgmdmbpyJh5eXF4f2f7Dvk_oVeMCjqAS5KCgtC2OSB7xAfaVaJq_Ye4EKtMlhw; xq_r_token=4ac6dcb5a1bd823260eef986e5e529b07195748d; u=301738677203513; ssxmod_itna=Yq0xcQit0QiQF4Cq0Lx0PDQ92jPHeD9eP=GoIe9cx0yueGzDAxn40iDt=rqiqxFPQqQG2GxFeHenvL5qCgDqLeeF0b3ipDU4i8DCkx5TTDeetD5xGoDPxDeDAGqGaDb4DrnoqGp9uXvX6uDAQDQ4GyDitDKT09Di3DA4Dj8kxQ+DqB0DDl00ThlhDDbE=MB4rxaeDSF0UK8A=DjqGgDBdqf=TDGuFC2GNM8ZarOgQq=eGuDG6KEudP6DtV0wQrLG5FKGvoDfGotfx5YYxz07hi9zGPbAYz4kxp8Yx6o3h5AAxUHxqDG4YG8GDD==; ssxmod_itna2=Yq0xcQit0QiQF4Cq0Lx0PDQ92jPHeD9eP=GoIe9xn93KDsLDwxqjKG774D==; Hm_lvt_1db88642e346389874251b5a1eded6e3=1738669153; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1738677209; HMACCOUNT=9257A19C5F4B5828; device_id=c536d399cfd28af8db0958494300e2f1`
       Cookie: `cookiesu=711736585931987; device_id=b430e3072a48ffd67b432783b7a62861; s=aq1233ysd3; Hm_lvt_1db88642e346389874251b5a1eded6e3=1739804548; HMACCOUNT=491F5C940196B965; xq_a_token=3fd584b1737cd2ac2950be7a8b0785c56a7bb0ea; xqat=3fd584b1737cd2ac2950be7a8b0785c56a7bb0ea; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOjcxNTI0NjY1NjMsImlzcyI6InVjIiwiZXhwIjoxNzQxMjY2MDcxLCJjdG0iOjE3Mzk4MDQ2NDE3MDgsImNpZCI6ImQ5ZDBuNEFadXAifQ.oGdFOEY10NnPeD6_f4lDPnrk8-aOn0wBOjAXLrjWW5UjQbn2D3-g7QRoo_ZTZoevLIBiG1xLkWiamUXv2l3ZFJtcoL466ytwBvhTA9Q8WyojY6wJ6vioiBFf7PuSvjhu9NTVI8VD5Y8l-iDEaC4rcE3O-5ecRZJxj6YedUW4LDHxELnZUH7WOp0vQKXUHc8wkPwYpT5xYNa3Jo-G8a72GkJwpyBY12S9LkmkfzRvj5MPIWR9FzjPeEFsKg9mpN_teA7S6XTN_kKer46v_BjfI_pMvNe7fXYh7merehzKJEeM9SwCnu3XnjoK4LD67nHS6r3AqI_q_ZkH1ekXDBrOsg; xq_r_token=780c639f2006caf823cc2a191ffb9614f02e5337; xq_is_login=1; u=7152466563; is_overseas=0; ssxmod_itna=7qGOGIwDCDODX8DHYbYYK0=GODgjYtKUtlFz9zUDBM4AI5DZDiqAPGhDCSE/DQ+iqHeCg8c0W=46AcLK68nO0fNkFrB8m5DU4i8DCkqIxNDeWtD5xGoDPxDeDAWKiTDY4DdUEHy=DEDeKDmxiODl9H0xDauxi3UhKDRZ5D0=THDQKDuP5xDG5xGb0Pqj0PtFHHitBpDiyKc12PUxG1O40HU7dxU=g6gbizcZ8jQU48PFYDvxDkqSKDoZcpbeyzQK2xLn0xNiiev7nPkC241A0KYe2dYCrqPB1KkXhd=m2dfn=/eDDWiBZP4D; ssxmod_itna2=7qGOGIwDCDODX8DHYbYYK0=GODgjYtKUtlFz9D8d6OxGXLdqGa85fsXFU59IX8moPG2YB408DewGD===; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1739804615`
     };
   }
@@ -135,7 +134,6 @@ class StockCrawler {
           type: 'sh_sz'
         }
       });
-      console.log(response?.data?.data?.list, 'response.data.data.list');
       return response.data.data.list;
     } catch (error) {
       console.error('抓取雪球数据失败:', JSON.stringify(error, null, 2));
@@ -210,8 +208,6 @@ class StockCrawler {
           // md5__1632: 'eqjxuDBDgD0GBDiqGN9CDUor0DOl1r7Fq4D'
         }
       });
-
-      console.log(symbol, begin, period, type, count);
       if (response.data?.data) {
         return response.data.data;
       }

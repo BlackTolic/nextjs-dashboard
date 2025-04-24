@@ -2,11 +2,11 @@
 'use server';
 
 import { sql } from '@vercel/postgres';
-import { StockData } from '@/app/crawler/stock-crawler';
+import { StockData } from '@/app/crawler/xueqiu/xunqiu';
 import { postMail } from '@/app/lib/utils/monitor-stock'; // 假设已存在邮件发送工具
 import { getAllSubscriptionSettings } from './subscription';
 import { SettingItem, DescriptStockItem, calculateBOLL } from '@/app/lib/utils/monitor-stock';
-import { batchGetStockKline } from '@/app/crawler/stock-crawler'; // 批量获取股票K线数据
+import { batchGetStockKline } from '@/app/crawler/xueqiu/xunqiu'; // 批量获取股票K线数据
 
 const BOLL_PERIOD = 20;
 

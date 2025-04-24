@@ -3,7 +3,7 @@ import { lusitana } from '@/app/ui/fonts';
 import { BellIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import SubscriptionCard from '@/app/ui/components/card/subscription-card';
 import { Button } from '@/app/ui/button';
-import { pollXueqiuStocksList, crawlXueqiuStocksList } from '@/app/crawler/stock-crawler';
+import { pollXueqiuStocksList, crawlXueqiuStocksList } from '@/app/crawler/xueqiu/xunqiu';
 import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
 import { redirect } from 'next/navigation';
 import Search from '@/app/ui/search';
@@ -64,7 +64,7 @@ export default async function SubscriptionsPage({ searchParams }: { searchParams
         <NoSubscriptions />
       ) : (
         <>
-          {/* 有搜索结果但筛选后为空 */}
+          {/* 有搜索结果但筛选后为空  */}
           {query &&
           subscriptions.filter(
             subscription =>

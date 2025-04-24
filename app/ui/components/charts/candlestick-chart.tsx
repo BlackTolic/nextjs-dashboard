@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { batchGetStockKline, KlineDataTuple } from '@/app/crawler/stock-crawler';
+import { batchGetStockKline, KlineDataTuple } from '@/app/crawler/xueqiu/xunqiu';
 
 interface CandlestickChartProps {
   symbol: string; // 股票代码

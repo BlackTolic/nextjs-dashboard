@@ -5,7 +5,11 @@ import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { links } from './nav-links-data';
 
-export default function NavLinks() {
+interface NavLinksProps {
+  collapsed?: boolean;
+}
+
+export default function NavLinks({ collapsed = false }: NavLinksProps) {
   const pathname = usePathname();
 
   return (
@@ -24,7 +28,14 @@ export default function NavLinks() {
             )}
           >
             <LinkIcon className="w-6" />
-            <p className="hidden md:block">{link.name}</p>
+            <p
+              className={clsx({
+                hidden: collapsed,
+                'hidden md:block': !collapsed
+              })}
+            >
+              {link.name}
+            </p>
           </Link>
         );
       })}

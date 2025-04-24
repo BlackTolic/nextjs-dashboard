@@ -68,19 +68,19 @@ const SubscriptionCard = ({ subscription }: SubscriptionCardProps) => {
   }, [state]);
 
   return (
-    <div onClick={handleCardClick} className="cursor-pointer">
-      <Card className="w-72 hover:shadow-md transition-shadow">
+    <div onClick={handleCardClick} className="cursor-pointer w-full">
+      <Card className="w-full max-w-xs md:max-w-sm lg:max-w-md hover:shadow-md transition-shadow">
         <Divider />
-        <CardBody className="py-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-xl font-semibold">{subscription.title}</h3>
-              <p className="text-sm text-gray-500">{subscription.description}</p>
+        <CardBody className="py-4 px-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold truncate">{subscription.title}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">{subscription.description}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               <Link href={`/dashboard/subscriptions/${subscription.id}/edit?title=${subscription.title}`}>
                 <Button isIconOnly variant="light" size="sm" className="text-default-400 hover:text-default-600">
-                  <PencilIcon className="h-5 w-5" />
+                  <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
               <form action={formAction}>

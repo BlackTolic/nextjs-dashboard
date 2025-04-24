@@ -1,7 +1,7 @@
 'use server';
 import { sql } from '@vercel/postgres';
 import { StockInfo } from '../../../dashboard/stock-pool/constant';
-import { pollXueqiuStocksList } from '../../../crawler/stock-crawler';
+import { pollXueqiuStocksList } from '../../../crawler/xueqiu/xunqiu';
 
 export async function insertStocks(stocks: StockInfo[]) {
   try {
