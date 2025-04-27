@@ -1,3 +1,6 @@
+import request from '@/app/api/request';
+import axios from 'axios';
+
 const base = `http://127.0.0.1:8080/api/public`;
 import { IndustryTradePrps } from './interface';
 
@@ -29,6 +32,7 @@ export const getKlineData = () => {};
 /**
  * 股票行业成交
  */
-export const getStockIndustryTrade = (params: IndustryTradePrps) => {
-  return fetch(`${base}/stock_szse_sector_summary${getParams(params as Record<string, string>)}`);
+export const getStockIndustryTrade = async (params?: IndustryTradePrps) => {
+  console.log(params, 'params');
+  return await request.get(`${base}/stock_szse_sector_summary${getParams(params as Record<string, string>)}`);
 };
