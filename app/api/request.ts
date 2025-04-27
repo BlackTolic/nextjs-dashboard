@@ -1,7 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 const defaultOnReqFullfilled = (config: InternalAxiosRequestConfig) => {
-  console.log(config, 'config');
   return config;
 };
 
@@ -19,7 +18,7 @@ const defaultOnResRejected = (error: AxiosError) => {
 
 const defaultConfig = {
   baseURL: '/',
-  timeout: 5000 // 超时时间
+  timeout: 30000 // 超时时间
 };
 
 class Request {
