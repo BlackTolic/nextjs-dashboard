@@ -3,9 +3,20 @@ import * as xueqiu from '../../crawler/xueqiu/xunqiu';
 import * as AKShare from '../../crawler/ak-share';
 import {
   AnalystDetailPrps,
+  BlockFundRankPrps,
   IndustryTradePrps,
+  StockActiveBrokerPrps,
+  StockConceptFundFlowPrps,
   StockDetailPrps,
-  StockHistoryQuotePrps
+  StockDividendPrps,
+  StockFinancePrps,
+  StockFundFlowRankPrps,
+  StockHeatPrps,
+  StockHighLowPrps,
+  StockHistoryQuotePrps,
+  StockRecommendPoolPrps,
+  StockShareHolderPrps,
+  StockValuationPrps
 } from '@/app/crawler/ak-share/interface';
 
 type DataResource = 'xueqiu' | 'akshare' | '';
@@ -97,3 +108,108 @@ export const getStockComment = async (params?: string) => {
 };
 
 // 个股相关概念
+
+// 个股分红情况
+export const getStockDividendDetail = async (params: StockDetailPrps) => {
+  return await proxyApi.getStockDividendDetail(params);
+};
+
+// 行业资金流
+export const getStockIndustryMoneyFlow = async (params: StockConceptFundFlowPrps) => {
+  return await proxyApi.getStockIndustryMoneyFlow(params);
+};
+
+// 资产负债表
+export const getStockBalanceSheet = async (params: StockFinancePrps) => {
+  return await proxyApi.getStockBalanceSheet(params);
+};
+
+// 利润表
+export const getStockProfitSheet = async (params: StockFinancePrps) => {
+  return await proxyApi.getStockProfitSheet(params);
+};
+
+// 现金流量表
+export const getStockCashFlowSheet = async (params: StockFinancePrps) => {
+  return await proxyApi.getStockCashFlowSheet(params);
+};
+
+// 股债利差
+export const getStockBondDebtRatio = async () => {
+  return await proxyApi.getStockBondDebtRatio();
+};
+
+// 个股历史评分
+export const getStockCommentScore = async (params: StockDetailPrps) => {
+  return await proxyApi.getStockCommentScore(params);
+};
+
+// 用户关注指数
+export const getUserFollowIndex = async (params: StockDetailPrps) => {
+  return await proxyApi.getUserFollowIndex(params);
+};
+
+// 市场参与意愿（个股）
+export const getMarketParticipation = async (params: StockDetailPrps) => {
+  return await proxyApi.getMarketParticipation(params);
+};
+
+// 沪深港通资金流向
+export const getStockMoneyFlow = async () => {
+  return await proxyApi.getStockMoneyFlow();
+};
+
+// 板块排行
+export const getStockPlateRank = async (params: BlockFundRankPrps) => {
+  return await proxyApi.getStockPlateRank(params);
+};
+
+// 个股新闻
+export const getStockNews = async (params: StockDetailPrps) => {
+  return await proxyApi.getStockNews(params);
+};
+
+// 股东增减持
+export const getStockShareholders = async (params: StockShareHolderPrps) => {
+  return await proxyApi.getStockShareholders(params);
+};
+
+// 分红配送
+export const getStockDividend = async (params: StockDividendPrps) => {
+  return await proxyApi.getStockDividend(params);
+};
+
+// 概念资金流
+export const getStockConceptFundFlow = async (params: StockConceptFundFlowPrps) => {
+  return await proxyApi.getStockConceptFundFlow(params);
+};
+
+// 个股资金流排名
+export const getStockFundFlowRank = async (params: StockFundFlowRankPrps) => {
+  return await proxyApi.getStockFundFlowRank(params);
+};
+
+// 机构推荐池
+export const getStockRecommendPool = async (params: StockRecommendPoolPrps) => {
+  return await proxyApi.getStockRecommendPool(params);
+};
+
+// A股估值指标
+export const getStockValuation = async (params: StockValuationPrps) => {
+  return await proxyApi.getStockValuation(params);
+};
+
+// 创新高和新低的股票数量
+export const getStockHighLow = async (params: StockHighLowPrps) => {
+  return await proxyApi.getStockHighLow(params);
+};
+
+// 每日活跃营业部
+export const getStockActiveBrokers = async (params: StockActiveBrokerPrps) => {
+  return await proxyApi.getStockActiveBrokers(params);
+};
+
+// 雪球股票热度
+export const getStockHot = async (params: StockHeatPrps) => {
+  return await proxyApi.getStockHot(params);
+};
