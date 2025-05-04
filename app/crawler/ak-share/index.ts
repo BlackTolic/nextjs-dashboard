@@ -12,8 +12,10 @@ import {
   StockFinancePrps,
   StockHeatPrps,
   StockHighLowPrps,
+  StockHistoryQuotePrps,
   StockShareHolderPrps
 } from './interface';
+import { symbol } from 'zod';
 
 const getParams = (params: any) => {
   if (!params) return '';
@@ -78,8 +80,27 @@ export const getStockRealTime = async (params: StockDetailPrps) => {
 /**
  * 个股历史行情
  */
-export const getStockHistory = async (params: StockDetailPrps) => {
-  return await request.get(`${base}/stock_zh_a_hist${getParams(params)}`);
+export const getStockHistory = async (params: StockHistoryQuotePrps) => {
+  const symbol = params.symbol.substring(2);
+  const res = await request.get(`${base}/stock_zh_a_hist${getParams({ ...params, symbol })}`);
+  const columnMap = {
+    开盘: 'open',
+    成交量: 'volume',
+    成交额: 'dealAmunt',
+    振幅: 'amplitude',
+    换手率: 'turnoverRate',
+    收盘: 'close',
+    日期: 'timestamp',
+    最低: 'low',
+    最高: 'high',
+    涨跌幅: 'changeRate',
+    涨跌额: 'changeAmount',
+    股票代码: 'stockCode'
+  };
+  const column = Object.values(columnMap);
+  // 修正类型错误，columnMap 是对象，不是类型，这里假设 res.data 是所需数据数组
+  const item = (res as any[]).map(item => Object.keys(columnMap).map(key => item[key]));
+  return params['symbol'] ? { [params['symbol']]: { column, item } } : {};
 };
 
 /**

@@ -2,17 +2,19 @@
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { batchGetStockKline, KlineDataTuple } from '@/app/crawler/xueqiu/xunqiu';
+import { getStockHistory } from '@/app/api/stock/stock';
+import dayjs from 'dayjs';
 
 interface CandlestickChartProps {
   symbol: string; // 股票代码
   title?: string; // 添加可选的 title 属性
 }
 
-type KlinePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year';
+type KlinePeriod = 'daily' | 'weekly' | 'monthly';
 
 const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => {
   const [options, setOptions] = useState({});
-  const [period, setPeriod] = useState<KlinePeriod>('day');
+  const [period, setPeriod] = useState<KlinePeriod>('daily');
   const [data, setData] = useState<KlineDataTuple>([]);
   const [column, setColumn] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,9 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
   const fetchKlineData = async () => {
     try {
       setLoading(true);
-      const stocks = await batchGetStockKline([symbol], period, -199);
+      // const stocks = await batchGetStockKline([symbol], period, -199);
+      const stocks = await getStockHistory({ symbol, period });
+      console.log('获取K线数据:', stocks);
       if (stocks[symbol]) {
         setData(stocks[symbol].item);
         setColumn(stocks[symbol].column);
@@ -31,6 +35,29 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * 计算移动平均线
+   * @param dayCount 计算周期（天数）
+   * @param data K线数据
+   * @returns 移动平均线数据数组
+   */
+  const calculateMA = (dayCount: number, data: number[][]) => {
+    const result = [];
+    const closeIndex = column.indexOf('close');
+    for (let i = 0, len = data.length; i < len; i++) {
+      if (i < dayCount - 1) {
+        result.push('-');
+        continue;
+      }
+      let sum = 0;
+      for (let j = 0; j < dayCount; j++) {
+        sum += data[i - j][closeIndex];
+      }
+      result.push((sum / dayCount).toFixed(2));
+    }
+    return result;
   };
 
   // 周期变化时重新获取数据
@@ -49,7 +76,8 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
     const timestampIndex = column.indexOf('timestamp'); // 时间戳列索引
 
     // 转换时间戳为日期字符串
-    const categoryData = data.map(item => new Date(Number(item[timestampIndex])).toLocaleDateString());
+    // const categoryData = data.map(item => new Date(Number(item[timestampIndex])).toLocaleDateString());
+    const categoryData = data.map(item => dayjs(item[timestampIndex]).format('YYYYMMDD'));
 
     // 构建K线图所需的数据格式
     const values = data.map(item => [
@@ -58,7 +86,6 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
       Number(item[lowIndex]),
       Number(item[highIndex])
     ]);
-
     // 获取成交量列的索引
     const volumeIndex = column.indexOf('volume');
 
@@ -297,29 +324,6 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
     setOptions(option);
   }, [data, column]);
 
-  /**
-   * 计算移动平均线
-   * @param dayCount 计算周期（天数）
-   * @param data K线数据
-   * @returns 移动平均线数据数组
-   */
-  const calculateMA = (dayCount: number, data: number[][]) => {
-    const result = [];
-    const closeIndex = column.indexOf('close');
-    for (let i = 0, len = data.length; i < len; i++) {
-      if (i < dayCount - 1) {
-        result.push('-');
-        continue;
-      }
-      let sum = 0;
-      for (let j = 0; j < dayCount; j++) {
-        sum += data[i - j][closeIndex];
-      }
-      result.push((sum / dayCount).toFixed(2));
-    }
-    return result;
-  };
-
   return (
     <div className="relative">
       <div className="flex gap-2 items-center mb-4">
@@ -328,11 +332,11 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
           onChange={e => setPeriod(e.target.value as KlinePeriod)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="day">日K</option>
-          <option value="week">周K</option>
-          <option value="month">月K</option>
-          <option value="quarter">季K</option>
-          <option value="year">年K</option>
+          <option value="daily">日K</option>
+          <option value="weekly">周K</option>
+          <option value="monthly">月K</option>
+          {/* <option value="quarter">季K</option>
+          <option value="year">年K</option> */}
         </select>
       </div>
       {loading ? (
