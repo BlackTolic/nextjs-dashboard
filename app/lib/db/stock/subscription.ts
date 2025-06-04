@@ -11,7 +11,11 @@ interface Subscription {
 
 export async function addSubscription(stockSymbol: string, email: string) {
   const session = await nextAuth.auth();
+  console.log(session, 'session');
   const userId = session?.user?.id;
+  if (!userId) {
+    return { success: false, error: '未登录' };
+  }
   try {
     await sql`
       INSERT INTO subscriptions (user_id, stock_symbol, email)

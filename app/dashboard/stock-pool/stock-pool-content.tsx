@@ -68,6 +68,7 @@ export default function StockPoolContent() {
       const result = isSubscribed
         ? await removeSubscription(record.symbol)
         : await addSubscription(record.symbol, email);
+      console.log(result, 'result');
       if (result.success) {
         const newSubscribed = isSubscribed
           ? subscribedStocks.filter(code => code !== record.symbol)

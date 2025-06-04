@@ -113,8 +113,10 @@ export async function deleteInvoice(id: string, formData: FormData): Promise<voi
 
 // 用户认证的服务器动作
 export async function authenticate(prevState: string | undefined, formData: FormData) {
+  console.log('用户认证的服务器动作');
   try {
-    await nextAuth.signIn('credentials', formData);
+    const res = await nextAuth.signIn('credentials', formData);
+    console.log(res, 'res');
   } catch (error) {
     if (error instanceof AuthError) {
       // 处理不同类型的认证错误

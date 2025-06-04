@@ -45,9 +45,11 @@ export const nextAuth = NextAuth({
           const { email, password } = parsedCredentials.data;
           // 数据库中的用户信息 {id,name,email,password:hash加密}
           const user = await getUser(email);
+          console.log('user:', user);
           if (!user) return null;
           // todo 使用bcrypt比对密码
           const passwordsMatch = await bcrypt.compare(password, user.password);
+          console.log('passwordsMatch:', passwordsMatch);
           if (passwordsMatch) {
             // 返回不包含密码的用户信息
             return {
@@ -74,6 +76,7 @@ export const nextAuth = NextAuth({
     },
     // 然后通过 session callback 将 token 中的信息转存到 session：
     async session({ session, token }) {
+      console.log('session:', session);
       if (token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
@@ -83,3 +86,5 @@ export const nextAuth = NextAuth({
   },
   secret: process.env.AUTH_SECRET
 });
+
+console.log('nextAuth:', nextAuth); // 输出：nextAuth: NextAuthInterna

@@ -8,9 +8,9 @@ import { symbol } from 'zod';
 export default function Page() {
   //   const [loading, setLoading] = useState(false);
 
-  const handleClickTest = async () => {
+  const handleClickTest = async () => {  
     try {
-      //   setLoading(true);
+      //   setLoading(true);  
       console.log('开始请求...');
       const res = await api.getStockIndustryTrade(/* { date: '202502' } */);
       console.log('请求成功:', res);
@@ -199,18 +199,18 @@ export default function Page() {
       <div className="mt-6">
         <Button onClick={handleClickTest}> 行业成交</Button>
       </div>
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <Button onClick={handleClickTest2}> 个股详情</Button>
-      </div>
+      </div> */}
       <div className="mt-6">
         <Button onClick={handleClickTest3}> 行情报价</Button>
       </div>
       <div className="mt-6">
         <Button onClick={handleClickTest4}> 实时行情</Button>
       </div>
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <Button onClick={handleClickTest5}> 个股实时行情</Button>
-      </div>
+      </div> */}
       <div className="mt-6">
         <Button onClick={handleClickTest6}> 个股历史行情</Button>
       </div>

@@ -1,5 +1,4 @@
 'use client';
-
 import { useParams, useSearchParams } from 'next/navigation';
 import { lusitana } from '@/app/ui/fonts';
 import { PencilIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
@@ -12,7 +11,9 @@ import SubscriptionSettings from '@/app/ui/components/subscription/subscription-
 export default function EditSubscriptionPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  // console.log(searchParams, 'searchParams');
   const id = params.id as string;
+  // console.log(id, 'id');
   const title = searchParams.get('title');
 
   return (
