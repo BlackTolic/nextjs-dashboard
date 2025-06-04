@@ -7,5 +7,3 @@ export function initializeApp() {
   // startTimeLogger(() => postMail([], []));
   // 其他初始化代码...
 }
-
-initializeApp();

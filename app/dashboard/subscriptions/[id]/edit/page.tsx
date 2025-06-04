@@ -3,10 +3,10 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { lusitana } from '@/app/ui/fonts';
 import { PencilIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
-import CandlestickChart from '@/app/ui/components/charts/candlestick-chart';
+import CandlestickChart from '@/app/dashboard/subscriptions/[id]/edit/candlestick-chart';
 import { Tabs, Tab, Switch, Checkbox, Input } from '@heroui/react';
 import { useState } from 'react';
-import SubscriptionSettings from '@/app/ui/components/subscription/subscription-settings';
+import SubscriptionSettings from '@/app/dashboard/subscriptions/[id]/edit/subscription-settings';
 
 export default function EditSubscriptionPage() {
   const params = useParams();
@@ -29,7 +29,7 @@ export default function EditSubscriptionPage() {
         ]}
       />
       <div className="mt-4">
-        <Tabs className="flex flex-col gap-4">
+        <Tabs className="flex flex-col gap-4" destroyInactiveTabPanel={false}>
           <Tab key="info" title="基本信息">
             <div className="mt-4 rounded-lg bg-gray-50 p-6">
               <div className="flex flex-col gap-4">

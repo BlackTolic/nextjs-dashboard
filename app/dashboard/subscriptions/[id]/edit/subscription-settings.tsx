@@ -20,7 +20,7 @@ interface BollPeriod {
   lower: BollLine;
 }
 
-interface SubscriptionForm {
+export interface SubscriptionForm {
   isSubscribed: boolean;
   bollSettings: {
     daily: BollPeriod;
@@ -43,35 +43,37 @@ interface SubscriptionSettingsProps {
   stockSymbol?: string;
 }
 
+const initConfig = {
+  isSubscribed: false,
+  bollSettings: {
+    daily: {
+      upper: { enabled: false, offset: 0 },
+      middle: { enabled: false, offset: 0 },
+      lower: { enabled: false, offset: 0 }
+    },
+    weekly: {
+      upper: { enabled: false, offset: 0 },
+      middle: { enabled: false, offset: 0 },
+      lower: { enabled: false, offset: 0 }
+    },
+    monthly: {
+      upper: { enabled: false, offset: 0 },
+      middle: { enabled: false, offset: 0 },
+      lower: { enabled: false, offset: 0 }
+    }
+  },
+  profitLossRatio: {
+    buyPrice: 0,
+    ratio: 2.0
+  }
+};
+
 export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettingsProps) {
   const params = useParams();
   const symbol = stockSymbol || (params.id as string);
   const [loading, setLoading] = useState(true);
 
-  const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>({
-    isSubscribed: false,
-    bollSettings: {
-      daily: {
-        upper: { enabled: false, offset: 0 },
-        middle: { enabled: false, offset: 0 },
-        lower: { enabled: false, offset: 0 }
-      },
-      weekly: {
-        upper: { enabled: false, offset: 0 },
-        middle: { enabled: false, offset: 0 },
-        lower: { enabled: false, offset: 0 }
-      },
-      monthly: {
-        upper: { enabled: false, offset: 0 },
-        middle: { enabled: false, offset: 0 },
-        lower: { enabled: false, offset: 0 }
-      }
-    },
-    profitLossRatio: {
-      buyPrice: 0,
-      ratio: 2.0
-    }
-  });
+  const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>(initConfig);
 
   const [expandedPeriods, setExpandedPeriods] = useState<Period[]>([]);
 
@@ -81,7 +83,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
       try {
         setLoading(true);
         const settings = await getSubscriptionSettings(symbol);
-        console.log('Fetched settings:', settings);
+        console.log('获取setting配置:', settings);
 
         if (settings) {
           // 确保数据结构匹配
@@ -188,6 +190,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
       } else {
         toast.error(result.error || '保存失败');
       }
+      // 发送通知给所有订阅者
       await sendNotificationsToAllSubscribers();
     } catch (error) {
       toast.error('保存失败，请重试');
