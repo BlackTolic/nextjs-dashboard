@@ -6,9 +6,8 @@ import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { saveSubscriptionSettings, getSubscriptionSettings } from '@/app/lib/actions/subscription';
 import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { updateDescriptMessage } from '@/app/lib/init/scheduler';
+import { taskScheduler } from '@/app/lib/init/scheduler';
 import { sendNotificationsToAllSubscribers } from '@/app/lib/actions/notice-descriper';
-
 interface BollLine {
   enabled: boolean;
   offset: number;
@@ -185,7 +184,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
       const result = await saveSubscriptionSettings(subscriptionSettings);
 
       if (result.success) {
-        // await updateDescriptMessage('模板已经更新');
+        taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
         toast.success('设置保存成功');
       } else {
         toast.error(result.error || '保存失败');
@@ -244,7 +243,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                   <Checkbox
                     color="success"
                     isSelected={subscriptionForm.bollSettings[period as Period][line as Line].enabled}
-                    onChange={event =>
+                    onChange={(event: { target: { checked: number | boolean } }) =>
                       handleBollSettingChange(period as Period, 'enabled', event.target.checked, line as Line)
                     }
                   >
@@ -255,7 +254,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                       <span>偏移:</span>
                       <Input
                         type="number"
-                        onChange={e =>
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           handleBollSettingChange(period as Period, 'offset', Number(e.target.value), line as Line)
                         }
                         className="w-20"
@@ -281,7 +280,9 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
             <label className="w-24 text-sm font-medium">买入价格</label>
             <Input
               type="number"
-              onChange={e => handleProfitLossChange('buyPrice', Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleProfitLossChange('buyPrice', Number(e.target.value))
+              }
               className="w-32"
               min={0}
               step={0.01}
@@ -295,7 +296,9 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
             <div className="flex items-center gap-2">
               <Input
                 type="number"
-                onChange={e => handleProfitLossChange('ratio', Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleProfitLossChange('ratio', Number(e.target.value))
+                }
                 className="w-20"
                 min={0.1}
                 max={10}
