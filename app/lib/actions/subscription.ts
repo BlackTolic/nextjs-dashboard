@@ -31,6 +31,14 @@ interface SubscriptionSettings {
   };
 }
 
+interface SubscriptionRecord {
+  userId: string;
+  stockSymbol: string;
+  settings: SubscriptionSettings;
+  updatedAt: Date;
+  email: string;
+}
+
 // 保存订阅设置
 export async function saveSubscriptionSettings(settings: SubscriptionSettings) {
   try {
@@ -107,7 +115,7 @@ export async function getAllSubscriptionSettings() {
       settings: row.settings,
       updatedAt: row.updated_at,
       email: row.email
-    }));
+    })) as SubscriptionRecord[];
   } catch (error) {
     console.error('获取全部订阅设置失败:', error);
     throw new Error('获取订阅数据时发生错误');

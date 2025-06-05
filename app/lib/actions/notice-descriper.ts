@@ -79,36 +79,38 @@ export async function sendNotificationsToAllSubscribers() {
     // 获取所有订阅设置
     const descriptionInfoList = await getAllSubscriptionSettings();
     //订阅者们的订阅设置
-    const templateSetting: SettingItem[] = [];
+    const watchSetting: SettingItem[] = [];
     // 订阅的股票代码
     const stockKlineList: StockQry[] = [];
+    console.log('descriptionInfoList', descriptionInfoList);
+    // 遍历所有订阅设置
     descriptionInfoList.forEach(item => {
       const { userId = '', stockSymbol = '', settings, email = '617938514@qq.com' } = item;
       const { isSubscribed = false } = settings ?? {};
-      const { daily = {}, weekly = {}, monthly = {} } = settings?.bollSettings ?? {};
-      //
+      const { daily, weekly, monthly } = settings?.bollSettings ?? {};
+      // 当前用户未订阅
       if (!isSubscribed) return;
       // daily中存在一个enabled为true的boll设置
-      if (Object.values(daily).some((x: any) => x.enabled)) {
+      if (Object.values(daily).some(x => x.enabled)) {
         stockKlineList.push({ target: 'day', stockSymbol });
       }
-      if (Object.values(weekly).some((x: any) => x.enabled)) {
+      if (Object.values(weekly).some(x => x.enabled)) {
         stockKlineList.push({ target: 'week', stockSymbol });
       }
-      if (Object.values(monthly).some((x: any) => x.enabled)) {
+      if (Object.values(monthly).some(x => x.enabled)) {
         stockKlineList.push({ target: 'month', stockSymbol });
       }
-      templateSetting.push({
-        stockCode: stockSymbol,
-        isOpen: isSubscribed,
-        subscriberEmail: email,
-        dayBollTop: daily.upper.enabled,
-        dayBollMiddle: daily.middle.enabled,
-        dayBollBottom: daily.lower.enabled,
-        dayOffset: daily.upper.offset,
-        weekBollTop: weekly.upper.enabled,
-        weekBollMiddle: weekly.middle.enabled,
-        weekBollBottom: weekly.weekBollBottom
+      watchSetting.push({
+        stockCode: stockSymbol, // 股票代码
+        isOpen: isSubscribed, // 是否开启订阅
+        subscriberEmail: email, // 订阅者邮箱
+        dayBollTop: daily.upper.enabled, // 日布林线上轨
+        dayBollMiddle: daily.middle.enabled, // 日布林线中轨
+        dayBollBottom: daily.lower.enabled, // 日布林线下轨
+        dayOffset: daily.upper.offset, // 日布林线上轨偏移量
+        weekBollTop: weekly.upper.enabled, // 周布林线上轨
+        weekBollMiddle: weekly.middle.enabled, // 周布林线中轨
+        weekBollBottom: weekly.lower.enabled // 周布林线下轨
       });
     });
     // 获取20条K线数据
@@ -146,9 +148,9 @@ export async function sendNotificationsToAllSubscribers() {
       };
     });
     // const
-    postMail(stockKlineDataList, templateSetting);
+    postMail(stockKlineDataList, watchSetting);
     console.log('stockKlineDataList', stockKlineDataList);
-    console.log('templateSetting', templateSetting);
+    console.log('templateSetting', watchSetting);
     return { success: true, count: 0 };
   } catch (error) {
     console.error('邮件通知发送失败:', error);

@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { taskScheduler } from '@/app/lib/init/scheduler';
 import { sendNotificationsToAllSubscribers } from '@/app/lib/actions/notice-descriper';
+
 interface BollLine {
   enabled: boolean;
   offset: number;
@@ -184,12 +185,13 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
       const result = await saveSubscriptionSettings(subscriptionSettings);
 
       if (result.success) {
+        // 更新定时器任务
         taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
         toast.success('设置保存成功');
       } else {
         toast.error(result.error || '保存失败');
       }
-      // 发送通知给所有订阅者
+      // todo 测试
       await sendNotificationsToAllSubscribers();
     } catch (error) {
       toast.error('保存失败，请重试');
