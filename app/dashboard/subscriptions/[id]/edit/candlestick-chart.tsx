@@ -206,6 +206,7 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
           axisLine: { onZero: false },
           splitLine: { show: false },
           splitNumber: 20,
+          // minInterval: 10
           min: 'dataMin',
           max: 'dataMax'
         },
@@ -236,7 +237,7 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
         {
           type: 'inside',
           xAxisIndex: [0, 1],
-          start: 0,
+          start: 99,
           end: 100
         },
         {
