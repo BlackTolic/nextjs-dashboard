@@ -216,7 +216,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
               </button>
             </div>
 
-            {/* <h3 className="text-lg font-medium">订阅卡片 {index + 1}</h3> */}
+            <h3 className="text-lg font-medium">订阅卡片</h3>
             <div>
               大王，您已订阅布林线
               <span className="text-red-500">{BOLL_LINE_PERIOD_MAP[subscription.bollPeriod]} </span>的
