@@ -9,9 +9,9 @@ export interface SubscriptionItemProp {
   settings: {
     uniId?: string;
     isSubscribed?: 'Y' | 'N';
-    bollLine?: string;
-    bollPeriod?: string;
-    breakDirection?: string;
+    bollLine?: 'middle' | 'upper' | 'lower';
+    bollPeriod?: 'daily' | 'weekly' | 'monthly';
+    breakDirection?: 'up' | 'down';
     offset?: string | number;
   }[];
 }

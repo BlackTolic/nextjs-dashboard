@@ -15,6 +15,7 @@ import { sendNotificationsToAllSubscribers } from '@/app/lib/actions/notice-desc
 import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
+import { BOLL_LINE_BREAK_DIRETION, BOLL_LINE_MAP, BOLL_LINE_PERIOD_MAP } from '../../constant';
 
 interface BollLine {
   enabled: boolean;
@@ -97,23 +98,22 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
 
   // 保存
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log(e, 'handleSubmit');
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget));
     try {
       const subscriptionSettings = {
         isSubscribed: editingIndex === null ? 'Y' : subscriptionForm.isSubscribed, // 确保传递了订阅状态
-        bollLine: data.bollLine as string, // 确保传递了布林线类型,
-        bollPeriod: data.bollPeriod as string, // 确保传递了布林线周期,
-        breakDirection: data.breakDirection as string, // 确保传递了突破方向,
-        offset: data.offset as string // 确保传递了偏移值,
-      };
+        bollLine: data.bollLine, // 确保传递了布林线类型,
+        bollPeriod: data.bollPeriod, // 确保传递了布林线周期,
+        breakDirection: data.breakDirection, // 确保传递了突破方向,
+        offset: data.offset // 确保传递了偏移值,
+      } as SubscriptionItemProp['settings'][number];
       const index = subscriptions?.findIndex?.(item => item.uniId === editingIndex);
       let settings = [];
       if (index > -1) {
         // 编辑操作
         const newSubscriptions = [...subscriptions]; // 复制数组
-        newSubscriptions[index] = subscriptionSettings; // 更新对应项
+        newSubscriptions[index] = { ...newSubscriptions[index], ...subscriptionSettings }; // 更新对应项
         settings = newSubscriptions; // 更新数组
       } else {
         // 新建操作
@@ -126,19 +126,6 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
         // 更新定时器任务
         taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
         toast.success('设置保存成功');
-        // if (editingIndex !== null) {
-        //   // 编辑操作
-        //   setSubscriptions(prev => {
-        //     const newSubscriptions = [...prev];
-        //     newSubscriptions[editingIndex] = subscriptionForm;
-        //     return newSubscriptions;
-        //   });
-        //   setEditingIndex(null);
-        // } else {
-        //   console.log(subscriptionForm, 'subscriptionForm');
-        //   // 新建操作
-        //   setSubscriptions(prev => [...prev, subscriptionForm]);
-        // }
         // 关闭弹框
         closeModal();
         // 刷新列表
@@ -158,7 +145,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
   const openModal = () => {
     setIsModalOpen(true);
     setEditingIndex(null);
-    // setSubscriptionForm({});
+    setSubscriptionForm({});
   };
 
   const closeModal = () => {
@@ -169,12 +156,9 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
   };
 
   const handleEdit = (uniId: string) => {
+    console.log(uniId, '编辑中的uniId');
     setEditingIndex(uniId);
-    setSubscriptionForm(subscriptions.find(sub => sub.uniId === uniId)!);
-    console.log(
-      subscriptions.find(sub => sub.uniId === uniId),
-      'subscriptions.find(sub => sub.uniId === uniId)'
-    );
+    setSubscriptionForm(subscriptions.find(sub => sub.uniId === uniId) || {});
     setIsModalOpen(true);
   };
 
@@ -232,8 +216,16 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
               </button>
             </div>
 
-            <h3 className="text-lg font-medium">订阅卡片 {index + 1}</h3>
-            {JSON.stringify(subscription)}
+            {/* <h3 className="text-lg font-medium">订阅卡片 {index + 1}</h3> */}
+            <div>
+              大王，您已订阅布林线
+              <span className="text-red-500">{BOLL_LINE_PERIOD_MAP[subscription.bollPeriod]} </span>的
+              <span className="text-red-500">{BOLL_LINE_MAP[subscription.bollLine]}</span>
+              （价格:
+              <span className="text-red-500">{'87.87'}</span>）,一旦
+              <span className="text-red-500">{BOLL_LINE_BREAK_DIRETION[subscription.breakDirection]}</span>
+              突破，我们将立马通知您
+            </div>
             {/* 新增卡片是否开启的按钮 */}
             <Switch
               className="mt-2 float-right"
@@ -299,10 +291,13 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                             <p className="text-sm font-medium">突破方向</p>
                             <RadioGroup
                               name="breakDirection"
-                              // value={subscriptionForm.breakDirection}
-                              // onChange={value => {
-                              //   setSubscriptionForm(prev => ({ ...prev, breakDirection: value as 'up' | 'down' }));
-                              // }}
+                              value={subscriptionForm?.breakDirection ?? ''}
+                              onChange={e => {
+                                setSubscriptionForm(prev => ({
+                                  ...prev,
+                                  breakDirection: e.target.value as 'up' | 'down'
+                                }));
+                              }}
                             >
                               <div className="flex gap-4">
                                 <label className="flex items-center">
@@ -322,19 +317,10 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                             <p className="text-sm font-medium">布林线周期</p>
                             <RadioGroup
                               name="bollPeriod"
-                              // value={PERIODS.find(period => subscriptionForm.bollSettings[period].upper.enabled)}
-                              // onChange={value => {
-                              //   const newBollSettings = { ...subscriptionForm.bollSettings };
-                              //   PERIODS.forEach(p => {
-                              //     LINES.forEach(line => {
-                              //       newBollSettings[p][line].enabled = false;
-                              //     });
-                              //   });
-                              //   if (value) {
-                              //     newBollSettings[value].upper.enabled = true;
-                              //   }
-                              //   setSubscriptionForm(prev => ({ ...prev, bollSettings: newBollSettings }));
-                              // }}
+                              value={subscriptionForm?.bollPeriod ?? ''}
+                              onChange={e => {
+                                setSubscriptionForm(prev => ({ ...prev, bollPeriod: e.target.value }));
+                              }}
                             >
                               <div className="flex gap-4">
                                 {PERIODS.map(period => (
@@ -354,25 +340,10 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                             <p className="text-sm font-medium">布林线轨线</p>
                             <RadioGroup
                               name="bollLine"
-                              // value={LINES.find(line => {
-                              //   const selectedPeriod = PERIODS.find(period =>
-                              //     LINES.some(l => subscriptionForm.bollSettings[period][l].enabled)
-                              //   );
-                              //   return selectedPeriod && subscriptionForm.bollSettings[selectedPeriod][line].enabled;
-                              // })}
-                              // onChange={value => {
-                              //   const newBollSettings = { ...subscriptionForm.bollSettings };
-                              //   const selectedPeriod = PERIODS.find(period =>
-                              //     LINES.some(l => newBollSettings[period][l].enabled)
-                              //   );
-                              //   if (selectedPeriod && value) {
-                              //     LINES.forEach(l => {
-                              //       newBollSettings[selectedPeriod][l].enabled = false;
-                              //     });
-                              //     newBollSettings[selectedPeriod][value].enabled = true;
-                              //   }
-                              //   setSubscriptionForm(prev => ({ ...prev, bollSettings: newBollSettings }));
-                              // }}
+                              value={subscriptionForm.bollLine || ''}
+                              onChange={e => {
+                                setSubscriptionForm(prev => ({ ...prev, bollLine: e.target.value }));
+                              }}
                             >
                               <div className="flex gap-4">
                                 {LINES.map(line => (
@@ -393,10 +364,10 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                             <Input
                               type="number"
                               name="offset"
-                              // value={String(subscriptionForm.offset)}
-                              // onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              //   setSubscriptionForm(prev => ({ ...prev, offset: Number(e.target.value) }))
-                              // }
+                              value={String(subscriptionForm.offset || '')}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                setSubscriptionForm(prev => ({ ...prev, offset: Number(e.target.value) }))
+                              }
                               className="w-full h-min"
                             />
                           </div>
