@@ -78,8 +78,21 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
     setExpandedPeriods(prev => (prev.includes(period) ? prev.filter(p => p !== period) : [...prev, period]));
   };
 
-  const switchSubmit = (checked: boolean) => {
-    setSubscriptionForm(prev => ({ ...prev, isSubscribed: checked }));
+  const switchSubmit = async (checked: boolean, uniId = '') => {
+    try {
+      const index = subscriptions?.findIndex?.(item => item.uniId === uniId);
+      subscriptions[index].isSubscribed = checked ? 'Y' : 'N';
+      setSubscriptions([...subscriptions]);
+      const result = await saveSubscriptionSettings({ stockSymbol: symbol, settings: [...subscriptions] });
+      if (!result.success) {
+        subscriptions[index].isSubscribed = checked ? 'N' : 'Y';
+        setSubscriptions([...subscriptions]);
+        toast.error(result.error || '修改失败');
+      }
+    } catch (error) {
+      console.error('保存订阅设置失败:', error);
+      toast.error('保存失败，请重试');
+    }
   };
 
   // 保存
@@ -87,9 +100,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
     console.log(e, 'handleSubmit');
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget));
-    console.log(data, 'data');
     try {
-      console.log('1111', 1111);
       const subscriptionSettings = {
         isSubscribed: editingIndex === null ? 'Y' : subscriptionForm.isSubscribed, // 确保传递了订阅状态
         bollLine: data.bollLine as string, // 确保传递了布林线类型,
@@ -97,9 +108,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
         breakDirection: data.breakDirection as string, // 确保传递了突破方向,
         offset: data.offset as string // 确保传递了偏移值,
       };
-      console.log(22222, '22222');
       const index = subscriptions?.findIndex?.(item => item.uniId === editingIndex);
-      console.log(index, 'index');
       let settings = [];
       if (index > -1) {
         // 编辑操作
@@ -112,9 +121,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
           ? [...subscriptions, { ...subscriptionSettings, uniId: Date.now().toString() }]
           : [{ ...subscriptionSettings, uniId: Date.now().toString() }];
       }
-      console.log(stockSymbol, '66666677777');
       const result = await saveSubscriptionSettings({ stockSymbol: symbol, settings });
-      console.log(result, 'result');
       if (result.success) {
         // 更新定时器任务
         taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
@@ -164,6 +171,10 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
   const handleEdit = (uniId: string) => {
     setEditingIndex(uniId);
     setSubscriptionForm(subscriptions.find(sub => sub.uniId === uniId)!);
+    console.log(
+      subscriptions.find(sub => sub.uniId === uniId),
+      'subscriptions.find(sub => sub.uniId === uniId)'
+    );
     setIsModalOpen(true);
   };
 
@@ -229,14 +240,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
               value={subscription.isSubscribed}
               name="isSubscribed"
               isSelected={subscription.isSubscribed === 'Y'}
-              onChange={checked => {
-                const newSubscriptions = [...subscriptions];
-                newSubscriptions[index] = {
-                  ...newSubscriptions[index],
-                  isSubscribed: checked
-                };
-                setSubscriptions(newSubscriptions);
-              }}
+              onChange={e => switchSubmit(e.target.checked, subscription.uniId)}
             />
             {/* 可以添加更多订阅信息展示 */}
           </div>
