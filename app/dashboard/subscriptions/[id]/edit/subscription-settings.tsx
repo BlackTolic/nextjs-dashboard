@@ -11,22 +11,11 @@ import {
 import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { taskScheduler } from '@/app/lib/init/scheduler';
-import { sendNotificationsToAllSubscribers } from '@/app/lib/actions/notice-descriper';
 import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
 import { BOLL_LINE_BREAK_DIRETION, BOLL_LINE_MAP, BOLL_LINE_PERIOD_MAP } from '../../constant';
-
-interface BollLine {
-  enabled: boolean;
-  offset: number;
-}
-
-interface BollPeriod {
-  upper: BollLine;
-  middle: BollLine;
-  lower: BollLine;
-}
+import { sendNotificationsToAllSubscribers } from '@/app/lib/actions/notice-descriper';
 
 const PERIODS = ['daily', 'weekly', 'monthly'] as const;
 type Period = (typeof PERIODS)[number];
@@ -44,9 +33,7 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
   const [loading, setLoading] = useState(true);
   // 编辑表单信息
   const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionItemProp['settings'][number]>({});
-  const [expandedPeriods, setExpandedPeriods] = useState<Period[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<string | null>(null);
   // 新增状态来存储所有订阅信息
   const [subscriptions, setSubscriptions] = useState<SubscriptionItemProp['settings']>([]);
@@ -74,11 +61,6 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
     }
   }, [symbol]);
 
-  // 展开或折叠某个周期
-  const togglePeriod = (period: Period) => {
-    setExpandedPeriods(prev => (prev.includes(period) ? prev.filter(p => p !== period) : [...prev, period]));
-  };
-
   const switchSubmit = async (checked: boolean, uniId = '') => {
     try {
       const index = subscriptions?.findIndex?.(item => item.uniId === uniId);
@@ -95,6 +77,10 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
       toast.error('保存失败，请重试');
     }
   };
+
+  // const updateSubcriptionConfig = async (subscription: SubscriptionItemProp['settings']) => {
+  //   const res = await saveSubscriptionSettings({ stockSymbol: symbol, settings: subscription });
+  // };
 
   // 保存
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -123,13 +109,15 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
       }
       const result = await saveSubscriptionSettings({ stockSymbol: symbol, settings });
       if (result.success) {
-        // 更新定时器任务
-        taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
         toast.success('设置保存成功');
         // 关闭弹框
         closeModal();
         // 刷新列表
-        await fetchSettings();
+        fetchSettings();
+        // 更新定时器任务
+        taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
+        // 发送通知
+        sendNotificationsToAllSubscribers();
       } else {
         toast.error(result.error || '保存失败');
       }
@@ -150,7 +138,6 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setIsEditModalOpen(false);
     // 保存成功后重置表单
     setSubscriptionForm({});
   };
@@ -219,11 +206,16 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
             <h3 className="text-lg font-medium">订阅卡片</h3>
             <div>
               大王，您已订阅布林线
-              <span className="text-red-500">{BOLL_LINE_PERIOD_MAP[subscription.bollPeriod]} </span>的
-              <span className="text-red-500">{BOLL_LINE_MAP[subscription.bollLine]}</span>
+              <span className="text-red-500">
+                {subscription.bollPeriod ? BOLL_LINE_PERIOD_MAP[subscription.bollPeriod] : ''}
+              </span>
+              的
+              <span className="text-red-500">{subscription.bollLine ? BOLL_LINE_MAP[subscription.bollLine] : ''}</span>
               （价格:
               <span className="text-red-500">{'87.87'}</span>）,一旦
-              <span className="text-red-500">{BOLL_LINE_BREAK_DIRETION[subscription.breakDirection]}</span>
+              <span className="text-red-500">
+                {subscription.breakDirection ? BOLL_LINE_BREAK_DIRETION[subscription.breakDirection] : ''}
+              </span>
               突破，我们将立马通知您
             </div>
             {/* 新增卡片是否开启的按钮 */}
@@ -319,7 +311,10 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                               name="bollPeriod"
                               value={subscriptionForm?.bollPeriod ?? ''}
                               onChange={e => {
-                                setSubscriptionForm(prev => ({ ...prev, bollPeriod: e.target.value }));
+                                setSubscriptionForm(prev => ({
+                                  ...prev,
+                                  bollPeriod: e.target.value as 'daily' | 'weekly' | 'monthly'
+                                }));
                               }}
                             >
                               <div className="flex gap-4">
@@ -342,7 +337,10 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
                               name="bollLine"
                               value={subscriptionForm.bollLine || ''}
                               onChange={e => {
-                                setSubscriptionForm(prev => ({ ...prev, bollLine: e.target.value }));
+                                setSubscriptionForm(prev => ({
+                                  ...prev,
+                                  bollLine: e.target.value as 'upper' | 'middle' | 'lower'
+                                }));
                               }}
                             >
                               <div className="flex gap-4">

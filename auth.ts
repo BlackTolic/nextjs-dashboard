@@ -86,5 +86,3 @@ export const nextAuth = NextAuth({
   },
   secret: process.env.AUTH_SECRET
 });
-
-console.log('nextAuth:', nextAuth); // 输出：nextAuth: NextAuthInterna
