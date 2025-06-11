@@ -5,19 +5,30 @@
  *  通过email发送通知给订阅者
  **/
 
-// 订阅者
-class Subscriber {
-  private id: string;
-  private name: string;
-  private email: string;
+interface Config {
+  socket: string;
+  settings: { week: string }[];
+}
 
-  constructor(id: string, name: string, email: string) {
-    this.id = id;
-    this.name = name;
-    this.email = email;
+export interface Observer {
+  id: string;
+  email: string;
+  config: Config;
+}
+
+// 订阅者
+export class Subscriber implements Observer {
+  id: string;
+  email: string;
+  config: Config;
+
+  constructor(user: Observer) {
+    this.id = user.id;
+    this.email = user.email;
+    this.config = user.config;
   }
 
-  notify(eventId: string, data: any) {
-    console.log(`用户[${this.name}]收到事件[${eventId}]通知: ${data.message}`);
+  update(message: string): void {
+    console.log(`${this.id} 收到新闻: ${message}`);
   }
 }
