@@ -13,14 +13,14 @@ interface Config {
 export interface Observer {
   id: string;
   email: string;
-  config: Config;
+  config: Config[];
 }
 
 // 订阅者
 export class Subscriber implements Observer {
-  id: string;
-  email: string;
-  config: Config;
+  public id;
+  public email;
+  public config;
 
   constructor(user: Observer) {
     this.id = user.id;
@@ -28,7 +28,7 @@ export class Subscriber implements Observer {
     this.config = user.config;
   }
 
-  update(message: string): void {
-    console.log(`${this.id} 收到新闻: ${message}`);
+  update(...args: any[]): void {
+    console.log(`${this.id} 收到新闻:${args.length}`);
   }
 }
