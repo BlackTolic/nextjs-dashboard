@@ -2,15 +2,15 @@
 import { BuildingOfficeIcon } from '@heroicons/react/24/outline';
 import Title from '@/app/ui/components/title/page';
 import { Button } from '@/app/ui/button';
-import * as api from '@/app/api/stock/stock';
+import * as api from '@/app/api/stock';
 import { symbol } from 'zod';
 
 export default function Page() {
   //   const [loading, setLoading] = useState(false);
 
-  const handleClickTest = async () => {  
+  const handleClickTest = async () => {
     try {
-      //   setLoading(true);  
+      //   setLoading(true);
       console.log('开始请求...');
       const res = await api.getStockIndustryTrade(/* { date: '202502' } */);
       console.log('请求成功:', res);

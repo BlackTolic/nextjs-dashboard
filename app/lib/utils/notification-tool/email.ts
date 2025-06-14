@@ -1,4 +1,3 @@
-'use server';
 import nodemailer from 'nodemailer';
 
 // 邮件选项
@@ -26,7 +25,7 @@ class EmailStrategy {
   }
 
   // 发送邮件
-  async sendMail(options: MailOptions) {
+  async sendMessage(options: MailOptions) {
     const { smtpTransport } = this;
     return new Promise(resolve => {
       const mailOptions = {

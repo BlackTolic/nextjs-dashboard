@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { batchGetStockKline, KlineDataTuple } from '@/app/crawler/xueqiu/xunqiu';
-import { getStockHistory } from '@/app/api/stock/stock';
+import { getStockHistory } from '@/app/api/stock';
 import dayjs from 'dayjs';
 
 interface CandlestickChartProps {

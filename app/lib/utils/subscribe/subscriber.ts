@@ -5,9 +5,15 @@
  *  通过email发送通知给订阅者
  **/
 
+import { some } from 'lodash';
+import { SubscriptionItemProp } from '../../actions/subscription';
+import { NotifyTool } from './subscribe-center';
+import { Socket } from 'dgram';
+import { any } from 'zod';
+
 interface Config {
   socket: string;
-  settings: { week: string }[];
+  settings: SubscriptionItemProp['settings'];
 }
 
 export interface Observer {
@@ -28,7 +34,43 @@ export class Subscriber implements Observer {
     this.config = user.config;
   }
 
-  update(...args: any[]): void {
-    console.log(`${this.id} 收到新闻:${args.length}`);
+  flattenSubscriber() {
+    return this.config.flatMap(config => {
+      return config.settings.map(setting => {
+        return {
+          id: this.id,
+          email: this.email,
+          socket: config.socket,
+          ...setting
+        };
+      });
+    });
+  }
+
+  update(dayDataMap: Map<string, any>, computedDataMap: Map<string, any>, tool: NotifyTool): void {
+    const configs = this.flattenSubscriber();
+    configs.forEach(config => {
+      const { socket } = config;
+      if (dayDataMap.has(socket) && this.checkCondition(dayDataMap, computedDataMap, config as any)) {
+        const data = dayDataMap.get(socket);
+        tool?.sendMessage({ to: this.email, subject: '股票数据', text: JSON.stringify(data) }); // 发送通知给订阅者;
+        console.log(`${this.id} 收到新闻:'${socket}'，内容:${JSON.stringify(data)}`);
+      }
+    });
+  }
+
+  checkCondition(
+    dataMap: Map<string, any>,
+    computedDataMap: Map<string, any>,
+    config: SubscriptionItemProp['settings'][number]
+  ): boolean {
+    const { isSubscribed, bollLine, bollPeriod, breakDirection, offset } = config;
+
+    if (isSubscribed !== 'Y') {
+      return false; // 未订阅
+    }
+    const computedData = Number(computedDataMap.get('socket')[bollPeriod!][bollLine!]) + (Number(offset) || 0); // 计算出的BOLL值加上偏移量;
+    const diff = dataMap.get('socket').vaule - computedData;
+    return breakDirection === 'up' ? diff > 0 : diff < 0;
   }
 }
