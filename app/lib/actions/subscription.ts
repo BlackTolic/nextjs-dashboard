@@ -70,7 +70,7 @@ export async function getSubscriptionSettings(stockSymbol: string) {
     if (result.rows.length === 0) {
       return null;
     }
-    console.log('根据用户id查询某只股票的订阅设置:', JSON.stringify(result));
+    // console.log('根据用户id查询某只股票的订阅设置:', JSON.stringify(result));
     // 数据库返回的是 JSON 对象，直接返回
     return result.rows[0].settings as SubscriptionItemProp['settings'];
   } catch (error) {

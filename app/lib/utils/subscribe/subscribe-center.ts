@@ -3,7 +3,7 @@ import { emailStrategy } from '../notification-tool/email';
 import { Observer, Subscriber } from './subscriber';
 import * as api from '@/app/api/stock';
 import dayjs from 'dayjs';
-import { calculateBOLL } from '../common/chart';
+import { calculateBOLL, transformData } from '../common/chart';
 
 export type NotifyTool = typeof emailStrategy | null;
 type TemplateParams = Observer['config'][number]['settings'][number];
@@ -42,6 +42,7 @@ export class SubscribeCenter {
   notifyTeplate: string; // 通知模板
   public subscribedStockDayIndex: Map<string, any>; // 每日拉取的已经订阅的股票的BOLL指标
   public subscribedStocks: Map<string, any>; // 所有用户订阅的股票
+  public allStocks: Map<string, any>; // 所有股票
 
   constructor() {
     // todo 暂时存在内存中，后续需要redis持久化
@@ -49,6 +50,7 @@ export class SubscribeCenter {
     this.notifyTeplate = '';
     this.subscribedStockDayIndex = new Map(); // 每日拉取的已经订阅的股票的BOLL指标
     this.subscribedStocks = new Map(); // 所有用户订阅的股票
+    this.allStocks = new Map(); // 所有股票
   }
 
   register(subscriber: Subscriber, notifyTool: NotifyTool) {
@@ -70,7 +72,7 @@ export class SubscribeCenter {
   notifyEverybody() {
     const { subscribedStockDayIndex, subscribedStocks } = this;
     this.subscribers.forEach(subscriber => {
-      // 将计算出的股票值、通讯工具给订阅者
+      // 将计算出的所有股票boll值、实时股票值、通讯工具给订阅者
       subscriber.update(subscribedStockDayIndex, subscribedStocks, this.notifyTool);
     });
   }
@@ -80,16 +82,29 @@ export class SubscribeCenter {
     return `哈哈哈哈哈，这是一个通知模板params: ${params}`;
   }
 
-  // 拉取所有用户已经订阅的股票
+  // 实时拉取所有用户已经订阅的股票
   async pullAllSubscribedStock() {
     // 对所有用户订阅的票进行聚合，去重
-    const allSubscribedStock = this.subscribers.flatMap(subscriber => subscriber.config).map(config => config.socket);
-    const allPromises = allSubscribedStock.map(socket => {
-      // 拉取所有已经订阅的股票，计算出他们的boll线指标
-      return this.pullSelectStock(socket);
+    const allSubscribedStock = this.subscribers.flatMap(subscriber => subscriber.config).map(x => x.socket);
+    const repeatedStock = [...new Set(allSubscribedStock)];
+    console.log(repeatedStock, 'repeatedStock');
+    // const allPromises = allSubscribedStock.map(socket => {
+    //   // 拉取所有已经订阅的股票，计算出他们的boll线指标
+    //   return this.pullSelectStock(socket);
+    // });
+    // const res = await Promise.all(allPromises);
+    // 获取所有股票的实时报价
+    // { symbol: repeatedStock.join(',
+    const res = await api.getAllStockRealTimeQuote();
+    console.log(res.length, 're');
+    const subscribedStocks = res.filter((x: { symbol: string }) => {
+      const sym = x.symbol.substring(-2);
+      // console.log(sym, 'sym');
+      return repeatedStock.includes(x.symbol.substring(-2));
     });
-    const res = await Promise.all(allPromises);
-    this.subscribedStocks = new Map([(res as any).map((x: { socket: any }) => [x.socket, x])]);
+    console.log(subscribedStocks, 'subscribedStocks');
+    this.subscribedStocks = new Map([subscribedStocks.map((x: { symbol: any }) => [x.symbol, x])]);
+    console.log(this.subscribedStocks, 'this.subscribedStocks');
   }
 
   // 计算出BOLL指标等各种指标，编制渔网，再回传到数据库
@@ -109,7 +124,7 @@ export class SubscribeCenter {
       const start = dayjs().subtract(40, periodMap[per]).format('YYYYMMDD');
       const end = dayjs().format('YYYYMMDD');
       const period = per; // 这里需要做类型断言,
-      console.log('start', start, 'end', end, 'period', period);
+      // console.log('start', start, 'end', end, 'period', period);
       return api.batchGetStockHistory({
         symbolArr: allSockets,
         period,
@@ -121,16 +136,19 @@ export class SubscribeCenter {
     const newItems = res.flat().map((x: any) => {
       const { symbol, period, column, item } = x;
       const [top, middle, bottom] = calculateBOLL(column, item, 20); // 计算BOLL
-      // console.log('boll', boll);
-      // this.subscribedStockDayIndex.set(symbol, { [period]: { top: boll[0], mee: boll[1], b: boll[2] } });
       return { symbol, period, top, middle, bottom };
     });
-    console.log('newItems', newItems);
-    console.log(this.subscribedStockDayIndex.size, ' this.subscribedStockDayIndex');
+    const trsData = transformData(newItems);
+    Object.keys(trsData).forEach(symbol => {
+      this.allStocks.set(symbol, trsData[symbol]);
+    });
   }
 
   async pullSelectStock(socket: string) {
-    return await this.crawlAllStock();
+    // return await this.crawlAllStock();
+    const res = api.getStockRealTime({ symbol: socket });
+    console.log(res, 'res');
+    return res;
   }
 
   // 拉取所有已经订阅的股票的BOLL指标
@@ -145,12 +163,14 @@ export class SubscribeCenter {
   async startTask() {
     try {
       // 设置定时器，每天定时爬虫爬取所有股票，拉取crawlAllStock中已经订阅的股票的BOLL指标
-      await this.collectSubscribedStockIndex();
+      // await this.crawlAllStock();
+      // console.log(this.allStocks, ' this.allStocks');
+
       // 开启定时任务，每隔5min拉取所有已经订阅的股票,并看当前值是否满足条件
-      // const timer = setInterval(() => {
-      // this.pullAllSubscribedStock();
-      // this.notifyEverybody();
-      // }, 1111);
+      setTimeout(async () => {
+        await this.pullAllSubscribedStock();
+        this.notifyEverybody();
+      }, 1000);
     } catch (error) {
       console.error('启动任务失败:', error);
     }

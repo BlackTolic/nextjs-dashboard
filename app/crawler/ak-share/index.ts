@@ -16,6 +16,7 @@ import {
   StockShareHolderPrps
 } from './interface';
 import { symbol } from 'zod';
+import { transMapProps } from '@/app/lib/utils/common/interface';
 
 const getParams = (params: any) => {
   if (!params) return '';
@@ -66,9 +67,65 @@ export const getStockQuote = async (params: StockDetailPrps) => {
 /**
  * 所有股票实时行情
  */
-export const getAllStockRealTimeQuote = async (params: StockDetailPrps) => {
-  return await request.get(`${base}/stock_zh_a_spot_em${getParams(params)}`);
+export const getAllStockRealTimeQuote = async (params?: StockDetailPrps) => {
+  const data = await request.get(`${base}/stock_zh_a_spot_em${getParams({ ...params })}`);
+  const columnMap = {
+    序号: 'index',
+    代码: 'symbol',
+    名称: 'name',
+    最新价: 'latestPrice',
+    涨跌幅: 'changeRate',
+    涨跌额: 'changeAmount',
+    成交量: 'volume',
+    成交额: 'dealAmount',
+    振幅: 'amplitude',
+    最高: 'high',
+    最低: 'low',
+    今开: 'open',
+    昨收: 'close',
+    量比: 'volumeRatio',
+    换手率: 'turnoverRate',
+    '市盈率-动态': 'pe',
+    市净率: 'pb',
+    总市值: 'totalMarketValue',
+    流通市值: 'circulatingMarketValue',
+    涨速: 'speed',
+    '5分钟涨跌': 'fiveMinuteChange',
+    '60日涨跌幅': 'sixtyDayChangeRate',
+    年初至今涨跌幅: 'yearToDateChangeRate'
+  };
+  const res = transMapProps(columnMap, data);
+  // 定义一个类型，基于 columnMap 对象的键
+  return res as unknown as { [key in keyof typeof columnMap]: string }[];
 };
+
+/**
+ * 所有股票实时行情 - 新浪
+ */
+export const getAllStockRealTimeQuoteV2 = async (params?: StockDetailPrps) => {
+  const data = await request.get(`${base}/stock_zh_a_spot${getParams({ ...params })}`);
+  const columnMap = {
+    // 序号: 'index',
+    代码: 'symbol',
+    名称: 'name',
+    最新价: 'latestPrice',
+    涨跌幅: 'changeRate',
+    涨跌额: 'changeAmount',
+    买入: 'buy',
+    卖出: 'sell',
+    昨收: 'previousClose',
+    今开: 'open',
+    最高: 'high',
+    最低: 'low',
+    成交量: 'volume',
+    成交额: 'dealAmount'
+  };
+  const res = transMapProps(columnMap, data);
+  // 定义一个类型，基于 columnMap 对象的键
+  return res as unknown as { [key in keyof typeof columnMap]: string }[];
+};
+
+//
 
 /**
  * 个股实时行情

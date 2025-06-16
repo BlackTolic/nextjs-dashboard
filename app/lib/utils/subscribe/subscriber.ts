@@ -53,7 +53,7 @@ export class Subscriber implements Observer {
       const { socket } = config;
       if (dayDataMap.has(socket) && this.checkCondition(dayDataMap, computedDataMap, config as any)) {
         const data = dayDataMap.get(socket);
-        tool?.sendMessage({ to: this.email, subject: '股票数据', text: JSON.stringify(data) }); // 发送通知给订阅者;
+        // tool?.sendMessage({ to: this.email, subject: '股票数据', text: JSON.stringify(data) }); // 发送通知给订阅者;
         console.log(`${this.id} 收到新闻:'${socket}'，内容:${JSON.stringify(data)}`);
       }
     });

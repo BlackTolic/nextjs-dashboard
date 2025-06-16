@@ -29,3 +29,33 @@ export const calculateBOLL = (column: string[], data: number[][], period: number
   }
   return result[result.length - 1];
 };
+
+interface TransformDataProps {
+  symbol: string;
+  period: string;
+  top: number | string;
+  middle: number | string;
+  bottom: number | string;
+}
+
+export const transformData = (
+  data: TransformDataProps[]
+): Record<string, Record<string, { top: number; middle: number; bottom: number }>> => {
+  const result: Record<string, Record<string, { top: number; middle: number; bottom: number }>> = {};
+
+  data.forEach(item => {
+    const { symbol, period, top, middle, bottom } = item;
+
+    if (!result[symbol]) {
+      result[symbol] = {};
+    }
+
+    result[symbol][period] = {
+      top,
+      middle,
+      bottom
+    };
+  });
+
+  return result;
+};

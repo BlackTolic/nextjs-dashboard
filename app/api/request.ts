@@ -18,7 +18,7 @@ const defaultOnResRejected = (error: AxiosError) => {
 
 const defaultConfig = {
   baseURL: '/',
-  timeout: 30000 // 超时时间
+  timeout: 60 * 1000 * 5 // 超时时间
 };
 
 class Request {

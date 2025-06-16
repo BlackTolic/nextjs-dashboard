@@ -59,7 +59,8 @@ export const getStockQuote = async (params: StockDetailPrps) => {
 
 // 所有股票实时行情
 export const getAllStockRealTimeQuote = async (params?: StockDetailPrps) => {
-  return await proxyApi.getAllStockRealTimeQuote(params);
+  // return await proxyApi.getAllStockRealTimeQuote(params);
+  return await proxyApi.getAllStockRealTimeQuoteV2(params);
 };
 
 // 个股实时行情
