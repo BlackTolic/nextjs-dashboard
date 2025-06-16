@@ -33,29 +33,33 @@ export const calculateBOLL = (column: string[], data: number[][], period: number
 interface TransformDataProps {
   symbol: string;
   period: string;
-  top: number | string;
+  upper: number | string;
   middle: number | string;
-  bottom: number | string;
+  lower: number | string;
 }
 
 export const transformData = (
   data: TransformDataProps[]
-): Record<string, Record<string, { top: number; middle: number; bottom: number }>> => {
-  const result: Record<string, Record<string, { top: number; middle: number; bottom: number }>> = {};
+): Record<string, Record<string, Omit<TransformDataProps, 'symbol' | 'period'>>> => {
+  const result: Record<string, Record<string, Omit<TransformDataProps, 'symbol' | 'period'>>> = {};
 
   data.forEach(item => {
-    const { symbol, period, top, middle, bottom } = item;
+    const { symbol, period, upper, middle, lower } = item;
 
     if (!result[symbol]) {
       result[symbol] = {};
     }
 
     result[symbol][period] = {
-      top,
+      upper,
       middle,
-      bottom
+      lower
     };
   });
 
   return result;
+};
+
+export const getSocketSymbol = (socket: string) => {
+  return socket.length === 8 ? socket.slice(2) : socket;
 };

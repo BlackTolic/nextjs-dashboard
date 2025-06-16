@@ -5,13 +5,15 @@ import { Observer, Subscriber } from '../utils/subscribe/subscriber';
 import { SubscribeCenter } from '../utils/subscribe/subscribe-center';
 import { emailStrategy } from '../utils/notification-tool/email';
 
+// daily: { top: 70.73, middle: 77.04, bottom: 64.43 },
+
 const user1: Observer = {
   id: 'id12222222',
-  email: '617938@qq.com',
+  email: '1031690983@qq.com',
   config: [
     {
-      socket: 'SZ600788',
-      settings: [{ isSubscribed: 'Y' }]
+      socket: 'SZ688167',
+      settings: [{ isSubscribed: 'Y', bollPeriod: 'daily', bollLine: 'upper', breakDirection: 'up' }]
     },
     {
       socket: 'SZxxxxxxx',
