@@ -69,7 +69,18 @@ export const getStockRealTime = async (params: StockDetailPrps) => {
 
 // 个股历史行情
 export const getStockHistory = async (params: StockHistoryQuotePrps) => {
-  return await proxyApi.getStockHistory(params);
+  return proxyApi.getStockHistory(params);
+};
+
+// 批量获取个股历史行情
+export const batchGetStockHistory = async (params: Omit<StockHistoryQuotePrps, 'symbol'> & { symbolArr: string[] }) => {
+  const { symbolArr, ...restParams } = params;
+  const res = await Promise.all(
+    symbolArr.map(symbol => {
+      return proxyApi.getStockHistory({ symbol, ...restParams });
+    })
+  );
+  return res;
 };
 
 // 个股主营业务

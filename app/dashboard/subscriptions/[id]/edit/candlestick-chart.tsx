@@ -26,9 +26,9 @@ const CandlestickChart = ({ symbol, title = symbol }: CandlestickChartProps) => 
       // const stocks = await batchGetStockKline([symbol], period, -199);
       const stocks = await getStockHistory({ symbol, period });
       console.log('获取K线数据:', stocks);
-      if (stocks[symbol]) {
-        setData(stocks[symbol].item);
-        setColumn(stocks[symbol].column);
+      if (stocks) {
+        setData(stocks.item);
+        setColumn(stocks.column);
       }
     } catch (error) {
       console.error('获取K线数据失败:', error);

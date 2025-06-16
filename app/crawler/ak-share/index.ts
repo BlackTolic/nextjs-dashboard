@@ -100,7 +100,7 @@ export const getStockHistory = async (params: StockHistoryQuotePrps) => {
   const column = Object.values(columnMap);
   // 修正类型错误，columnMap 是对象，不是类型，这里假设 res.data 是所需数据数组
   const item = (res as any[]).map(item => Object.keys(columnMap).map(key => item[key]));
-  return params['symbol'] ? { [params['symbol']]: { column, item } } : {};
+  return params['symbol'] ? { symbol: params['symbol'], column, item, period: params.period } : {};
 };
 
 /**

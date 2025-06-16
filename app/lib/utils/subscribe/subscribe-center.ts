@@ -3,6 +3,7 @@ import { emailStrategy } from '../notification-tool/email';
 import { Observer, Subscriber } from './subscriber';
 import * as api from '@/app/api/stock';
 import dayjs from 'dayjs';
+import { calculateBOLL } from '../common/chart';
 
 export type NotifyTool = typeof emailStrategy | null;
 type TemplateParams = Observer['config'][number]['settings'][number];
@@ -91,24 +92,41 @@ export class SubscribeCenter {
     this.subscribedStocks = new Map([(res as any).map((x: { socket: any }) => [x.socket, x])]);
   }
 
-  // 设置定时器，每天定时爬虫爬取所有股票，并且计算出BOLL指标等各种指标，编制渔网，再回传到数据库
+  // 计算出BOLL指标等各种指标，编制渔网，再回传到数据库
   async crawlAllStock() {
     // 1.定时爬取所有票
     // const allSubscribedStock = this.pullAllSubscribedStock();
-    const allSockets = ['603777', '002258'];
+    const allSockets = ['SZ002821', 'SZ002258'];
     // 爬取20日线计算boll值
-    const res = allSockets.map(Socket => {
-      const periodMap = {
-        daily: 'day',
-        weekly: 'week',
-        monthly: 'month'
-      };
-      const start = dayjs().subtract(20, 'day').format('YYYYMMDD');
+    const periodMap = {
+      daily: 'day',
+      weekly: 'week',
+      monthly: 'month'
+    };
+
+    const allRes = Object.keys(periodMap).map(per => {
+      // 由于 period 是 string 类型，不能直接用于索引 periodMap，需要做类型断言
+      const start = dayjs().subtract(40, periodMap[per]).format('YYYYMMDD');
       const end = dayjs().format('YYYYMMDD');
-      return api.getStockHistory({ symbol: Socket, period: 'daily', start_date: start, end_date: end });
+      const period = per; // 这里需要做类型断言,
+      console.log('start', start, 'end', end, 'period', period);
+      return api.batchGetStockHistory({
+        symbolArr: allSockets,
+        period,
+        start_date: start,
+        end_date: end
+      });
     });
-    const allRes = await Promise.all(res);
-    console.log('allRes', allRes);
+    const res = await Promise.all(allRes);
+    const newItems = res.flat().map((x: any) => {
+      const { symbol, period, column, item } = x;
+      const [top, middle, bottom] = calculateBOLL(column, item, 20); // 计算BOLL
+      // console.log('boll', boll);
+      // this.subscribedStockDayIndex.set(symbol, { [period]: { top: boll[0], mee: boll[1], b: boll[2] } });
+      return { symbol, period, top, middle, bottom };
+    });
+    console.log('newItems', newItems);
+    console.log(this.subscribedStockDayIndex.size, ' this.subscribedStockDayIndex');
   }
 
   async pullSelectStock(socket: string) {
@@ -126,7 +144,7 @@ export class SubscribeCenter {
   // 启动任务
   async startTask() {
     try {
-      // 拉取crawlAllStock中已经订阅的股票的BOLL指标
+      // 设置定时器，每天定时爬虫爬取所有股票，拉取crawlAllStock中已经订阅的股票的BOLL指标
       await this.collectSubscribedStockIndex();
       // 开启定时任务，每隔5min拉取所有已经订阅的股票,并看当前值是否满足条件
       // const timer = setInterval(() => {
