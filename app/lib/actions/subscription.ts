@@ -90,10 +90,12 @@ export async function getAllSubscriptionSettings() {
         user_id, 
         stock_symbol,
         settings,
-        updated_at
+        updated_at,
+        email
       FROM subscriptions
     `;
     // 格式化返回结果
+    // console.log('获取所有用户的订阅设置:', result.rows);
     return result.rows.map(row => ({
       userId: row.user_id,
       stockSymbol: row.stock_symbol,
