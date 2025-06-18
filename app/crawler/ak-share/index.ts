@@ -17,6 +17,7 @@ import {
 } from './interface';
 import { symbol } from 'zod';
 import { transMapProps } from '@/app/lib/utils/common/interface';
+import { getSocketSymbol } from '@/app/lib/utils/common/chart';
 
 const getParams = (params: any) => {
   if (!params) return '';
@@ -138,7 +139,7 @@ export const getStockRealTime = async (params: StockDetailPrps) => {
  * 个股历史行情
  */
 export const getStockHistory = async (params: StockHistoryQuotePrps) => {
-  const symbol = params.symbol.substring(2);
+  const symbol = getSocketSymbol(params.symbol);
   const res = await request.get(`${base}/stock_zh_a_hist${getParams({ ...params, symbol })}`);
   const columnMap = {
     开盘: 'open',

@@ -1,6 +1,8 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import Logger from '../lib/utils/logger';
 
 const defaultOnReqFullfilled = (config: InternalAxiosRequestConfig) => {
+  Logger.info(`请求地址: ${JSON.stringify(config.url)}`);
   return config;
 };
 
@@ -9,6 +11,7 @@ const defaultOnReqRejected = (error: AxiosError) => {
 };
 
 const defaultOnResFullfilled = (response: AxiosResponse) => {
+  Logger.info(`响应数据: ${JSON.stringify(response.data)}`);
   return response.data;
 };
 

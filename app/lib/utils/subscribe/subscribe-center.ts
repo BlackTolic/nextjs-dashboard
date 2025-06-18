@@ -95,7 +95,6 @@ export class SubscribeCenter {
       // 由于 period 是 string 类型，不能直接用于索引 periodMap，需要做类型断言
       const start = dayjs().subtract(40, periodMap[per]).format('YYYYMMDD');
       const end = dayjs().format('YYYYMMDD');
-      console.log(start, end, per, 1111111);
       return api.batchGetStockHistory({
         symbolArr: allSockets,
         period: per,
@@ -104,15 +103,14 @@ export class SubscribeCenter {
       });
     });
     const res = await Promise.all(allRes);
-    console.log(JSON.stringify(res), 'res');
     const newItems = res.flat().map((x: any) => {
       const { symbol, period, column, item } = x;
-      //   const [top, middle, bottom] = calculateBOLL(column, item, 20); // 计算BOLL
-      //   return { symbol: getSocketSymbol(symbol), period, upper: top, middle, lower: bottom };
-      // });
-      // const trsData = transformData(newItems);
-      // Object.keys(trsData).forEach(symbol => {
-      //   this.allStocks.set(symbol, trsData[symbol]);
+      const [top, middle, bottom] = calculateBOLL(column, item, 20); // 计算BOLL
+      return { symbol: getSocketSymbol(symbol), period, upper: top, middle, lower: bottom };
+    });
+    const trsData = transformData(newItems);
+    Object.keys(trsData).forEach(symbol => {
+      this.allStocks.set(symbol, trsData[symbol]);
     });
   }
 
