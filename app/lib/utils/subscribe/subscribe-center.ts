@@ -63,18 +63,33 @@ export class SubscribeCenter {
     return [...new Set(allSubscribedStock)];
   }
 
+  // 获取所有用户订阅票的实时信息
+  async getStocksRealTimeInfo() {
+    // 首先使用一次获取全部的接口
+    let res;
+    try {
+      res = await api.getAllStockRealTimeQuote();
+    } catch (error) {
+      // 如果获取全部的接口失败，使用降级接口
+      res = mockAllTimeData;
+    }
+    console.log('res', res);
+    return res;
+  }
+
   // 实时拉取所有用户已经订阅的股票
   async pullAllSubscribedStock() {
     // 获取所有用户订阅的股票代码
     const repeatedStock = this.getSubscribedStockSymbols();
     // 拉取所有票的实时信息
-    const res = mockAllTimeData || (await api.getAllStockRealTimeQuote());
+    const res = await this.getStocksRealTimeInfo();
     const subscribedStocks = res.filter((x: { symbol: string }) => {
       // 不同的接口返回的股票代码前缀有所不同，这里统一处理-截取股票代码
       const sym = getSocketSymbol(x.symbol);
       return repeatedStock.includes(sym);
     });
     this.subscribedStocks = new Map(subscribedStocks.map((x: { symbol: any }) => [x.symbol, x]));
+    // console.log('subscribedStocks', this.subscribedStocks);
   }
 
   // 计算出BOLL指标等各种指标，编制渔网，再回传到数据库
@@ -105,13 +120,14 @@ export class SubscribeCenter {
     const res = await Promise.all(allRes);
     const newItems = res.flat().map((x: any) => {
       const { symbol, period, column, item } = x;
-      const [top, middle, bottom] = calculateBOLL(column, item, 20); // 计算BOLL
+      const [middle, top, bottom] = calculateBOLL(column, item, 20); // 计算BOLL
       return { symbol: getSocketSymbol(symbol), period, upper: top, middle, lower: bottom };
     });
     const trsData = transformData(newItems);
     Object.keys(trsData).forEach(symbol => {
       this.allStocks.set(symbol, trsData[symbol]);
     });
+    // console.log('allStocks', this.allStocks);
   }
 
   async pullSelectStock(socket: string) {

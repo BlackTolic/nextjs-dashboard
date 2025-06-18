@@ -7,12 +7,14 @@ export default class Logger {
 
   static info(data: string) {
     const now = dayjs().format('YYYY-MM-DD HH:mm:ss'); // 使用dayjs格式化时间
-    const info = data.length <= 1000 ? data : data.slice(0, 1000) + '...';
-    console.log(
-      chalk.yellow(`【info】【time:${now}】
-        ${info}
-        `)
-    );
+    const content = data.length <= 1000 ? data : data.slice(0, 1000) + '...';
+    console.log(chalk.yellow(`\n【info】【time:${now}】${content}`));
+  }
+
+  static error(data: string) {
+    const now = dayjs().format('YYYY-MM-DD HH:mm:ss'); // 使用dayjs格式化时间
+    const content = data.length <= 1000 ? data : data.slice(0, 1000) + '...';
+    console.log(chalk.red(`\n【error】【time:${now}】${content}`));
   }
 }
 

@@ -11,11 +11,17 @@ const defaultOnReqRejected = (error: AxiosError) => {
 };
 
 const defaultOnResFullfilled = (response: AxiosResponse) => {
-  Logger.info(`响应数据: ${JSON.stringify(response.data)}`);
+  Logger.info(`
+    URL: ${response.config.url}
+    响应数据: ${JSON.stringify(response.data)}`);
   return response.data;
 };
 
 const defaultOnResRejected = (error: AxiosError) => {
+  Logger.error(`
+    URL: ${error.config?.url}
+    Code: ${error.status}
+    Error: ${JSON.stringify(error.message)}`);
   return Promise.reject(error);
 };
 
