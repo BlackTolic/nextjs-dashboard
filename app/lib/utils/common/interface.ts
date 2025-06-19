@@ -13,3 +13,14 @@ export const transMapProps = async (columnMap, dataSource) => {
     return newItem;
   });
 };
+
+// 将对象的键名从下划线格式转换为驼峰格式
+export const snakeToCamelObj = async (obj: Record<string, string>) => {
+  const result: Record<string, string> = {}; // 创建一个新对象，用于存储转换后的数据
+  for (const key in obj) {
+    // 遍历原对象的键值对
+    const camelKey = key.replace(/_([a-z])/g, (match, p1) => p1.toUpperCase()); // 将下划线格式的键名转换为驼峰格式的键名
+    result[camelKey] = obj[key]; // 将转换后的数据存储到新对象中
+  } // 返回新对象
+  return result;
+};

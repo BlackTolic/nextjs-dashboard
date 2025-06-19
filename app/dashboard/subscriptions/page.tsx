@@ -4,7 +4,7 @@ import { BellIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import SubscriptionCard from '@/app/ui/components/card/subscription-card';
 import { Button } from '@/app/ui/button';
 import { pollXueqiuStocksList, crawlXueqiuStocksList } from '@/app/crawler/xueqiu/xunqiu';
-import { getUserSubscriptions } from '@/app/lib/db/stock/subscription';
+import { getUserSubscriptions } from '@/app/lib/actions/subscription';
 import { redirect } from 'next/navigation';
 import Search from '@/app/ui/search';
 import { NoSubscriptions } from '@/app/ui/components/card/no-subscriptions';

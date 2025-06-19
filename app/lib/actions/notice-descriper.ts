@@ -82,7 +82,6 @@ export async function sendNotificationsToAllSubscribers() {
     const watchSetting: SettingItem[] = [];
     // 订阅的股票代码
     const stockKlineList: StockQry[] = [];
-    console.log('descriptionInfoList', descriptionInfoList);
     // 遍历所有订阅设置
     descriptionInfoList.forEach(item => {
       const { userId = '', stockSymbol = '', settings, email = '617938514@qq.com' } = item;

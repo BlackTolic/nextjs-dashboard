@@ -63,3 +63,28 @@ export const transformData = (
 export const getSocketSymbol = (socket: string) => {
   return socket.length === 8 ? socket.slice(2) : socket;
 };
+
+export const getValidUserConfigs = (config: any[]) => {
+  const valid = config.filter(item => {
+    const { userId, stockSymbol, settings, email } = item;
+    return userId && stockSymbol && email && settings?.length;
+  });
+  const userMap: Record<string, any> = {};
+  valid.forEach(item => {
+    const { userId, email, stockSymbol, settings } = item;
+    // 初始化或更新用户对象
+    if (!userMap[userId]) {
+      userMap[userId] = {
+        id: userId,
+        email,
+        config: []
+      };
+    }
+    // 添加当前stockSymbol和settings到config
+    userMap[userId].config.push({
+      socket: stockSymbol,
+      settings
+    });
+  });
+  return Object.values(userMap);
+};

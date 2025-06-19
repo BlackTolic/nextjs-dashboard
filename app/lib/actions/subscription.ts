@@ -2,7 +2,9 @@
 import { sql } from '@vercel/postgres';
 import { nextAuth } from '@/auth';
 import { revalidatePath } from 'next/cache';
-import { removeSubscription } from '@/app/lib/db/stock/subscription';
+import { getValidUserConfigs } from '../utils/common/chart';
+import { snakeToCamelObj } from '../utils/common/interface';
+import { subscribeCenter } from '../init';
 
 export interface SubscriptionItemProp {
   stockSymbol: string;
@@ -29,21 +31,27 @@ export interface SubscriptionRecordRes {
 export async function saveSubscriptionSettings(props: SubscriptionItemProp) {
   try {
     const session = await nextAuth.auth();
-    const id = session?.user?.id;
+    const { id, email } = session?.user || {};
+    console.log('saveSubscriptionSettings', email);
     if (!id) {
       throw new Error('未登录用户');
     }
     const { stockSymbol, settings } = props;
-    console.log('保存订阅设置:', stockSymbol);
     const settingsJson = JSON.stringify(settings);
     await sql`
-      INSERT INTO subscriptions (user_id, stock_symbol, settings, updated_at)
-      VALUES (${id}, ${stockSymbol}, ${settingsJson}::jsonb, NOW())
+      INSERT INTO subscriptions (user_id, stock_symbol,email, settings, updated_at)
+      VALUES (${id}, ${stockSymbol}, ${email}, ${settingsJson}::jsonb, NOW())
       ON CONFLICT (user_id, stock_symbol) 
       DO UPDATE SET
         settings = ${settingsJson}::jsonb,
         updated_at = NOW()
     `;
+    // 获取当前用户订阅配置
+    const userConfig = await getUserSubscriptions();
+    const trs = userConfig.map(item => snakeToCamelObj(item));
+    const userFormatConfig = getValidUserConfigs(trs);
+    console.log('userConfig', userFormatConfig);
+    subscribeCenter.updateSubscriber(id, userFormatConfig[0]);
     return { success: true };
   } catch (error) {
     console.error('保存订阅设置失败:', error);
@@ -125,5 +133,58 @@ export async function removeSubscriptionAction(state: { success: boolean; error?
     return { success: false, error: '删除失败' };
   } catch (error) {
     return { success: false, error: '删除失败，请重试' };
+  }
+}
+
+export async function addSubscription(stockSymbol: string, email: string) {
+  const session = await nextAuth.auth();
+  console.log(session, 'session');
+  const userId = session?.user?.id;
+  if (!userId) {
+    return { success: false, error: '未登录' };
+  }
+  try {
+    await sql`
+      INSERT INTO subscriptions (user_id, stock_symbol, email)
+      VALUES (${userId}, ${stockSymbol}, ${email})
+      ON CONFLICT (user_id, stock_symbol) DO NOTHING
+    `;
+    return { success: true };
+  } catch (error) {
+    console.error('添加订阅失败:', error);
+    return { success: false, error };
+  }
+}
+
+export async function removeSubscription(stockSymbol: string) {
+  const session = await nextAuth.auth();
+  const userId = session?.user?.id;
+  try {
+    await sql`
+      DELETE FROM subscriptions
+      WHERE user_id = ${userId} AND stock_symbol = ${stockSymbol}
+    `;
+    return { success: true };
+  } catch (error) {
+    console.error('取消订阅失败:', error);
+    return { success: false, error };
+  }
+}
+
+export async function getUserSubscriptions() {
+  const session = await nextAuth.auth();
+  const userId = session?.user?.id;
+  try {
+    const result = await sql`
+      SELECT s.*, st.name as stock_name
+      FROM subscriptions s
+      LEFT JOIN stocks st ON s.stock_symbol = st.symbol
+      WHERE s.user_id = ${userId}
+      ORDER BY s.created_at DESC
+    `;
+    return result.rows;
+  } catch (error) {
+    console.error('获取用户订阅失败:', error);
+    throw error;
   }
 }

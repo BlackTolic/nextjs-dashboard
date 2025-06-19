@@ -10,7 +10,7 @@ import {
 } from '@/app/lib/actions/subscription';
 import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { taskScheduler } from '@/app/lib/init/scheduler';
+// import { taskScheduler } from '@/app/lib/init/scheduler';
 import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
@@ -115,9 +115,9 @@ export default function SubscriptionSettings({ stockSymbol }: SubscriptionSettin
         // 刷新列表
         fetchSettings();
         // 更新定时器任务
-        taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
+        // taskScheduler.updateTimeEvent(() => console.log('第二个模板更新lele'));
         // 发送通知
-        sendNotificationsToAllSubscribers();
+        // sendNotificationsToAllSubscribers();
       } else {
         toast.error(result.error || '保存失败');
       }

@@ -46,9 +46,9 @@ export class Subscriber implements Observer {
   }
 
   update(dayDataMap: Map<string, any>, computedDataMap: Map<string, any>, tool: NotifyTool): void {
-    console.log('dayDataMap', dayDataMap);
-    console.log('computedDataMap', computedDataMap);
-    console.log('this.config', JSON.stringify(this.config));
+    // console.log('dayDataMap', dayDataMap);
+    // console.log('computedDataMap', computedDataMap);
+    // console.log('this.config', JSON.stringify(this.config));
 
     const configs = this.flattenSubscriber();
     configs.forEach(config => {
