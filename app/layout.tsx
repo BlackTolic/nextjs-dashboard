@@ -11,9 +11,8 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://next-learn-dashboard.vercel.sh')
 };
 
-console.log('metadata', 66666666);
-initializeApp();
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  console.log('metadata', 66666666);
+  initializeApp();
   return <ClientRootLayout>{children}</ClientRootLayout>;
 }

@@ -6,7 +6,7 @@ import StockDetailModal from '@/app/ui/stock-pool/stock-detail-modal';
 import SeniorTable from '@/app/ui/components/senior-table';
 import { getAllStocks } from '@/app/lib/db/stock/stock-list';
 import { stockPoolColumns, StockInfo } from './constant';
-import { addSubscription, removeSubscription, getUserSubscriptions } from '@/app/lib/db/stock/subscription';
+import { addSubscription, removeSubscription, getUserSubscriptions } from '@/app/lib/actions/subscription';
 
 export default function StockPoolContent() {
   const searchParams = useSearchParams();

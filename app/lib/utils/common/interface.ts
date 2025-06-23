@@ -15,7 +15,7 @@ export const transMapProps = async (columnMap, dataSource) => {
 };
 
 // 将对象的键名从下划线格式转换为驼峰格式
-export const snakeToCamelObj = async (obj: Record<string, string>) => {
+export const snakeToCamelObj = (obj: Record<string, string>) => {
   const result: Record<string, string> = {}; // 创建一个新对象，用于存储转换后的数据
   for (const key in obj) {
     // 遍历原对象的键值对

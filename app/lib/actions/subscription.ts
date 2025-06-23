@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { getValidUserConfigs } from '../utils/common/chart';
 import { snakeToCamelObj } from '../utils/common/interface';
 import { subscribeCenter } from '../init';
+import { Subscriber } from '../utils/subscribe/subscriber';
+import { emailStrategy } from '../utils/notification-tool/email';
 
 export interface SubscriptionItemProp {
   stockSymbol: string;
@@ -50,8 +52,16 @@ export async function saveSubscriptionSettings(props: SubscriptionItemProp) {
     const userConfig = await getUserSubscriptions();
     const trs = userConfig.map(item => snakeToCamelObj(item));
     const userFormatConfig = getValidUserConfigs(trs);
-    console.log('userConfig', userFormatConfig);
-    subscribeCenter.updateSubscriber(id, userFormatConfig[0]);
+    console.log('userConfig', userConfig);
+    console.log('trs', userFormatConfig);
+    console.log('has(id)', subscribeCenter.subscribers.has(id));
+    const configIsExist = userFormatConfig.length > 0;
+    // 不存在的需要撤销
+    if (subscribeCenter.subscribers.has(id)) {
+      configIsExist && subscribeCenter.updateSubscriber(id, new Subscriber(userFormatConfig[0]));
+    } else {
+      configIsExist && subscribeCenter.register(new Subscriber(userFormatConfig[0]), emailStrategy);
+    }
     return { success: true };
   } catch (error) {
     console.error('保存订阅设置失败:', error);

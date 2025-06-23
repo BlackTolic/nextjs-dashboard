@@ -60,7 +60,8 @@ export const transformData = (
   return result;
 };
 
-export const getSocketSymbol = (socket: string) => {
+export const getSocketSymbol = (socket: string = '') => {
+  if (!socket) return '';
   return socket.length === 8 ? socket.slice(2) : socket;
 };
 
@@ -82,7 +83,7 @@ export const getValidUserConfigs = (config: any[]) => {
     }
     // 添加当前stockSymbol和settings到config
     userMap[userId].config.push({
-      socket: stockSymbol,
+      socket: getSocketSymbol(stockSymbol),
       settings
     });
   });

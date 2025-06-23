@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { calculateBOLL, getSocketSymbol, transformData } from '../common/chart';
 import { mockAllTimeData } from '../../mock/subscribe-center';
 import cron from 'node-cron';
+import { transMapProps } from '../common/interface';
 
 export type NotifyTool = typeof emailStrategy | null;
 type TemplateParams = Observer['config'][number]['settings'][number];
@@ -60,8 +61,10 @@ export class SubscribeCenter {
 
   // 通知所有订阅者
   notifyEverybody() {
-    const { allStocksComputedVal, subscribedStocks } = this;
-    this.subscribers.forEach(subscriber => {
+    const { allStocksComputedVal, subscribedStocks, subscribers } = this;
+    console.log('subscribers', subscribers);
+    if (!subscribers || !subscribers.size) return;
+    subscribers.forEach(subscriber => {
       // 将实时股票值、计算出的所有股票boll值、通讯工具给订阅者
       subscriber.update(subscribedStocks, allStocksComputedVal, this.notifyTool);
     });
@@ -76,7 +79,7 @@ export class SubscribeCenter {
   getSubscribedStockSymbols() {
     const allSubscribedStock: string[] = []; // 所有用户订阅的股票
     this.subscribers.forEach((value, key) => {
-      value.config.forEach((config: any) => {
+      value?.config?.forEach((config: any) => {
         allSubscribedStock.push(getSocketSymbol(config.socket));
       });
     });
@@ -88,10 +91,27 @@ export class SubscribeCenter {
     // 首先使用一次获取全部的接口
     let res;
     try {
-      // res = await api.getAllStockRealTimeQuote();
-      res = mockAllTimeData;
+      res = await api.getAllStockRealTimeQuote();
+      // const columnMap = {
+      //   // 序号: 'index',
+      //   代码: 'symbol',
+      //   名称: 'name',
+      //   最新价: 'latestPrice',
+      //   涨跌幅: 'changeRate',
+      //   涨跌额: 'changeAmount',
+      //   买入: 'buy',
+      //   卖出: 'sell',
+      //   昨收: 'previousClose',
+      //   今开: 'open',
+      //   最高: 'high',
+      //   最低: 'low',
+      //   成交量: 'volume',
+      //   成交额: 'dealAmount'
+      // };
+      //  res = transMapProps(columnMap, mockAllTimeData);
     } catch (error) {
       // 如果获取全部的接口失败，使用降级接口
+
       res = mockAllTimeData;
     }
     // console.log('res', res);
@@ -163,16 +183,23 @@ export class SubscribeCenter {
   // 启动任务
   async startTask() {
     try {
+      console.log('开始执行启动任务！');
+      // console.log(window);
       // 每天下午3点10分 爬取所有股票，并且计算出BOLL指标等各种指标，再回传到数据库
-      cron.schedule('* 10 15 *  *', async () => {
-        this.crawlAllStock();
-        console.log('开始爬取所有股票，并且计算出BOLL指标等各种指标，再回传到数据库');
-      });
+      // cron.schedule('* 10 15 * *', async () => {
+      this.crawlAllStock();
+      console.log('开始爬取所有股票，并且计算出BOLL指标等各种指标，再回传到数据库');
+      // });
       // 开启定时任务，每隔5min拉取所有已经订阅的股票,并看当前值是否满足条件
-      cron.schedule('5 * * *  *', async () => {
-        console.log('开启定时任务，每隔5min拉取');
-        await this.pullAllSubscribedStock();
-        this.notifyEverybody();
+      cron.schedule('5 * * * * *', async () => {
+        try {
+          console.log('开启定时任务，每隔5min拉取');
+          await this.pullAllSubscribedStock();
+          this.notifyEverybody();
+          console.log(dayjs().format('HH:mm:ss'), '通知所有订阅者');
+        } catch (error) {
+          console.error('定时任务执行失败:', error);
+        }
       });
     } catch (error) {
       console.error('启动任务失败:', error);

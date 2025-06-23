@@ -3,6 +3,13 @@ import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { lusitana } from '@/app/ui/fonts';
 import Image from 'next/image';
+import { initializeApp } from './lib/init';
+
+export async function getServerSideProps() {
+  console.log('测试一下啊');
+  initializeApp();
+  return { props: {} };
+}
 
 export default function Page() {
   console.log('项目开始启动了！！');

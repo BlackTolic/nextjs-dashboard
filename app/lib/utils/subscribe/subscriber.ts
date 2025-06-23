@@ -46,9 +46,9 @@ export class Subscriber implements Observer {
   }
 
   update(dayDataMap: Map<string, any>, computedDataMap: Map<string, any>, tool: NotifyTool): void {
-    // console.log('dayDataMap', dayDataMap);
-    // console.log('computedDataMap', computedDataMap);
-    // console.log('this.config', JSON.stringify(this.config));
+    console.log('dayDataMap', dayDataMap);
+    console.log('computedDataMap', computedDataMap);
+    console.log('this.config', JSON.stringify(this.config));
 
     const configs = this.flattenSubscriber();
     configs.forEach(config => {
@@ -76,7 +76,9 @@ export class Subscriber implements Observer {
       return false; // 没有计算出的BOLL值
     }
     const computedData = Number(computedDataMap.get(socket)[bollPeriod!][bollLine!]) + (Number(offset) || 0); // 计算出的BOLL值加上偏移量;
+    console.log('computedData', computedData);
     const diff = Number(dataMap.get(socket)['latestPrice'] || 0) - computedData;
+    console.log('diff', diff); // 判断是否满足条件，这里需要根据具体的条件进行判断，这里只是一个示例，具体的条件需要根据业务需求进行修改
     return breakDirection === 'up' ? diff > 0 : diff < 0;
   }
 }
